@@ -1,0 +1,56 @@
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+index 65b6e4710a..eb8a3f9177 100644
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -967,7 +967,7 @@ pref("browser.search.separatePrivateDefault.ui.enabled", false);
+ pref("browser.search.separatePrivateDefault.ui.banner.max", 0);
+ 
+ // Enables search SERP telemetry page categorization.
+-pref("browser.search.serpEventTelemetryCategorization.enabled", true);
++pref("browser.search.serpEventTelemetryCategorization.enabled", false);
+ 
+ // A count of Glean SERP categorization event metrics that have been recorded
+ // but not yet submitted in a ping. Needed to prevent sending a ping with only
+@@ -1880,7 +1880,7 @@ pref("browser.topsites.component.enabled", false);
+ 
+ pref("browser.topsites.useRemoteSetting", true);
+ // Fetch sponsored Top Sites from Mozilla Tiles Service (Contile)
+-pref("browser.topsites.contile.enabled", true);
++pref("browser.topsites.contile.enabled", false);
+ pref("browser.topsites.contile.endpoint", "https://contile.services.mozilla.com/v1/tiles");
+ 
+ // The base URL for the Quick Suggest anonymizing proxy. To make a request to
+@@ -2005,8 +2005,14 @@ pref("messaging-system.askForFeedback", true);
+ // It's enabled by default, but could be disabled to force ASRouter to use the local files.
+ pref("browser.newtabpage.activity-stream.asrouter.useRemoteL10n", true);
+ 
++// Super Browser Land: pin these to false as compile-time defaults so New
++// Tab's own PrefsFeed (which only fills in *missing* defaults) can't reset
++// them to true at startup.
++pref("browser.newtabpage.activity-stream.showSponsored", false);
++pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
++
+ // These prefs control if Discovery Stream is enabled.
+-pref("browser.newtabpage.activity-stream.discoverystream.enabled", true);
++pref("browser.newtabpage.activity-stream.discoverystream.enabled", false);
+ pref("browser.newtabpage.activity-stream.discoverystream.hardcoded-basic-layout", false);
+ pref("browser.newtabpage.activity-stream.discoverystream.hybridLayout.enabled", false);
+ pref("browser.newtabpage.activity-stream.discoverystream.hideCardBackground.enabled", false);
+@@ -2112,7 +2118,7 @@ pref("browser.newtabpage.activity-stream.discoverystream.merino-feed-experiment"
+ 
+ // List of locales that get thumbs up/down on recommended stories by default.
+ 
+-pref("browser.newtabpage.activity-stream.telemetry.privatePing.enabled", true);
++pref("browser.newtabpage.activity-stream.telemetry.privatePing.enabled", false);
+ 
+ // Redacts content interaction ids from original New Tab ping once data processing migrated to the Newtab_content private ping
+ pref("browser.newtabpage.activity-stream.telemetry.privatePing.redactNewtabPing.enabled", true);
+@@ -2426,7 +2432,7 @@ pref("identity.fxaccounts.commands.remoteTabManagement.enabled", true);
+ 
+ // Controls whether or not the client association ping has values set on it
+ // when the sync-ui-state:update notification fires.
+-pref("identity.fxaccounts.telemetry.clientAssociationPing.enabled", true);
++pref("identity.fxaccounts.telemetry.clientAssociationPing.enabled", false);
+ 
+ // Note: when media.gmp-*.visible is true, provided we're running on a
+ // supported platform/OS version, the corresponding CDM appears in the

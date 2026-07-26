@@ -1,0 +1,28 @@
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+index eb8a3f9177..dd9f0bf0c9 100644
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -684,7 +684,11 @@ pref("browser.urlbar.switchTabs.adoptIntoActiveWindow", false);
+ 
+ // Whether addresses and search results typed into the address bar
+ // should be opened in new tabs by default.
+-pref("browser.urlbar.openintab", false);
++// Super Browser Land: on by default (Safari-style tab persistence) — typing
++// a URL never overwrites the current tab, except when the current tab is
++// blank/empty (about:newtab, about:blank), where it still navigates in
++// place. Existing modifier-key behavior (e.g. alt+enter) is unaffected.
++pref("browser.urlbar.openintab", true);
+ 
+ // Allow the result menu button to be reached with the Tab key.
+ pref("browser.urlbar.resultMenu.keyboardAccessible", true);
+@@ -955,7 +959,9 @@ pref("browser.helperApps.showOpenOptionForViewableInternally", true);
+ pref("browser.search.searchEnginesURL",      "https://addons.mozilla.org/%LOCALE%/firefox/search-engines/");
+ 
+ // search bar results always open in a new tab
+-pref("browser.search.openintab", false);
++// Super Browser Land: matches browser.urlbar.openintab above, for the
++// (legacy, off-screen-by-default) separate search bar widget.
++pref("browser.search.openintab", true);
+ 
+ // context menu searches open in the foreground
+ pref("browser.search.context.loadInBackground", false);

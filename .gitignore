@@ -1,0 +1,16 @@
+# Upstream Firefox source (fetched by scripts/fetch.sh, not vendored here)
+/firefox/
+
+# Build output
+/obj-*/
+*.log
+
+# Regeneratable icon render output (source of truth is branding/icon/icon.svg)
+/branding/icon/icon.svg.png
+/branding/icon/superbrowserland.iconset/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/

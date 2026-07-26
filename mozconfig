@@ -1,0 +1,10 @@
+# Build config for Super Browser Land.
+# Path is relative to firefox/ since MOZCONFIG is set to this file's absolute path.
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../obj-super-browser-land
+
+ac_add_options --enable-application=browser
+ac_add_options --disable-crashreporter
+ac_add_options --disable-tests
+
+# TODO: revisit once firefox/ is fetched and we've confirmed current flag
+# names/branding options against the tree (they drift between releases).

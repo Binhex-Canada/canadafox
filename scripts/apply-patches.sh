@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Resets ./firefox to a clean upstream checkout, then applies every patch in
+# patches/ (in filename order) on top of it.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+DEST="firefox"
+if [ ! -d "$DEST/.git" ]; then
+  echo "firefox/ not found; run scripts/fetch.sh first" >&2
+  exit 1
+fi
+
+git -C "$DEST" reset --hard HEAD
+git -C "$DEST" clean -fdx --exclude=/obj-*
+
+shopt -s nullglob
+patches=(patches/*.patch)
+if [ ${#patches[@]} -eq 0 ]; then
+  echo "No patches in patches/ yet"
+  exit 0
+fi
+
+for patch in "${patches[@]}"; do
+  echo "Applying $patch"
+  git -C "$DEST" apply --index "../$patch"
+done
+
+echo "Applied ${#patches[@]} patch(es)"
+
+# Binary assets (icons etc.) live in branding/ and are copied in rather than
+# diffed, to keep patches/ as plain text.
+if [ -f branding/icon/superbrowserland.icns ]; then
+  cp branding/icon/superbrowserland.icns "$DEST/browser/branding/unofficial/firefox.icns"
+  echo "Copied branding/icon/superbrowserland.icns -> $DEST/browser/branding/unofficial/firefox.icns"
+fi

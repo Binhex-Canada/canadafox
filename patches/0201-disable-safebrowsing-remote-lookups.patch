@@ -1,0 +1,20 @@
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+index cf780fdedc..99fbdfda3b 100644
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -1938,13 +1938,13 @@
+ # Malware protection
+ - name: browser.safebrowsing.malware.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
+ 
+ # Phishing protection
+ - name: browser.safebrowsing.phishing.enabled
+   type: bool
+-  value: true
++  value: false
+   mirror: always
+ 
+ # Global Cache

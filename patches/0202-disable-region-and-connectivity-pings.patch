@@ -1,0 +1,31 @@
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+index fc81b83242..28f4311d61 100644
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -3113,7 +3113,7 @@ pref("browser.region.network.url", "https://location.services.mozilla.com/v1/cou
+ pref("browser.region.network.scan", false);
+ // Timeout for whole region request.
+ pref("browser.region.timeout", 5000);
+-pref("browser.region.update.enabled", true);
++pref("browser.region.update.enabled", false);
+ 
+ pref("browser.meta_refresh_when_inactive.disabled", false);
+ 
+@@ -3277,7 +3277,7 @@ pref("network.captive-portal-service.maxInterval", 1500000); // 25 minutes
+ pref("network.captive-portal-service.backoffFactor", "5.0");
+ pref("network.captive-portal-service.enabled", false);
+ 
+-pref("network.connectivity-service.enabled", true);
++pref("network.connectivity-service.enabled", false);
+ pref("network.connectivity-service.DNSv4.domain", "example.org");
+ pref("network.connectivity-service.DNSv6.domain", "example.org");
+ pref("network.connectivity-service.DNS_HTTPS.domain", "cloudflare-dns.com");
+@@ -3395,7 +3395,7 @@ pref("browser.safebrowsing.allowOverride", true);
+ 
+ // Download protection
+ pref("browser.safebrowsing.downloads.enabled", true);
+-pref("browser.safebrowsing.downloads.remote.enabled", true);
++pref("browser.safebrowsing.downloads.remote.enabled", false);
+ pref("browser.safebrowsing.downloads.remote.timeout_ms", 15000);
+ pref("browser.safebrowsing.downloads.remote.url", "https://sb-ssl.google.com/safebrowsing/clientreport/download?key=%GOOGLE_SAFEBROWSING_API_KEY%");
+ pref("browser.safebrowsing.downloads.remote.block_dangerous",            true);

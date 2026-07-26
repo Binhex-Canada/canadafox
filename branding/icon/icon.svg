@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#2E8FDB"/>
+      <stop offset="55%" stop-color="#134E92"/>
+      <stop offset="100%" stop-color="#03142E"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="42%" r="75%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.45"/>
+    </radialGradient>
+    <radialGradient id="globe" cx="34%" cy="26%" r="80%">
+      <stop offset="0%" stop-color="#E9F8FF"/>
+      <stop offset="18%" stop-color="#AEE0FF"/>
+      <stop offset="42%" stop-color="#4FB3F0"/>
+      <stop offset="68%" stop-color="#1B72C9"/>
+      <stop offset="88%" stop-color="#0A3E7C"/>
+      <stop offset="100%" stop-color="#041B3D"/>
+    </radialGradient>
+    <radialGradient id="specular" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rimLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BFEBFF" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#BFEBFF" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#EAF6FF"/>
+      <stop offset="100%" stop-color="#BEDFF7"/>
+    </linearGradient>
+    <clipPath id="squircle">
+      <rect x="0" y="0" width="1024" height="1024" rx="229" ry="229"/>
+    </clipPath>
+    <clipPath id="globeClip">
+      <circle cx="512" cy="512" r="336"/>
+    </clipPath>
+    <filter id="blurSm" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <filter id="blurMd" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <filter id="blurLg" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#010B1E" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#squircle)">
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+
+    <!-- starfield -->
+    <g fill="#FFFFFF">
+      <circle cx="120" cy="120" r="3" opacity="0.55"/>
+      <circle cx="880" cy="150" r="2.4" opacity="0.4"/>
+      <circle cx="90" cy="820" r="2.6" opacity="0.45"/>
+      <circle cx="905" cy="860" r="3.2" opacity="0.5"/>
+      <circle cx="150" cy="480" r="2" opacity="0.3"/>
+      <circle cx="860" cy="500" r="2.2" opacity="0.3"/>
+      <circle cx="200" cy="900" r="2" opacity="0.35"/>
+      <circle cx="820" cy="130" r="1.8" opacity="0.35"/>
+      <circle cx="512" cy="90" r="2.2" opacity="0.35"/>
+      <circle cx="512" cy="940" r="2" opacity="0.3"/>
+    </g>
+
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#vignette)"/>
+
+    <!-- cast shadow -->
+    <ellipse cx="512" cy="860" rx="260" ry="46" fill="#010B1E" opacity="0.45" filter="url(#blurMd)"/>
+
+    <!-- atmosphere glow -->
+    <circle cx="512" cy="512" r="368" fill="none" stroke="#5FC3FF" stroke-opacity="0.5" stroke-width="26" filter="url(#blurLg)"/>
+
+    <!-- sphere -->
+    <g filter="url(#dropShadow)">
+      <circle cx="512" cy="512" r="336" fill="url(#globe)"/>
+    </g>
+
+    <g clip-path="url(#globeClip)">
+      <!-- ambient occlusion at bottom-right edge -->
+      <circle cx="512" cy="512" r="336" fill="none" stroke="#010B1E" stroke-opacity="0.5" stroke-width="60" filter="url(#blurMd)" transform="translate(30,30)"/>
+
+      <!-- meridians -->
+      <ellipse cx="512" cy="512" rx="90"  ry="336" fill="none" stroke="#EAF6FF" stroke-opacity="0.22" stroke-width="4"/>
+      <ellipse cx="512" cy="512" rx="190" ry="336" fill="none" stroke="#EAF6FF" stroke-opacity="0.3"  stroke-width="5"/>
+      <ellipse cx="512" cy="512" rx="336" ry="336" fill="none" stroke="#EAF6FF" stroke-opacity="0.4"  stroke-width="6"/>
+      <ellipse cx="512" cy="512" rx="470" ry="336" fill="none" stroke="#EAF6FF" stroke-opacity="0.3"  stroke-width="5"/>
+      <!-- parallels -->
+      <ellipse cx="512" cy="512" rx="336" ry="80"  fill="none" stroke="#EAF6FF" stroke-opacity="0.22" stroke-width="4"/>
+      <ellipse cx="512" cy="512" rx="336" ry="185" fill="none" stroke="#EAF6FF" stroke-opacity="0.28" stroke-width="5"/>
+      <ellipse cx="512" cy="512" rx="336" ry="300" fill="none" stroke="#EAF6FF" stroke-opacity="0.24" stroke-width="4"/>
+      <line x1="176" y1="512" x2="848" y2="512" stroke="#EAF6FF" stroke-opacity="0.42" stroke-width="6"/>
+
+      <!-- big soft specular highlight (glossy plastic look) -->
+      <ellipse cx="400" cy="330" rx="230" ry="150" fill="url(#specular)" filter="url(#blurSm)"/>
+      <ellipse cx="350" cy="270" rx="70" ry="40" fill="#FFFFFF" opacity="0.55" filter="url(#blurSm)"/>
+
+      <!-- rim light bottom-right -->
+      <circle cx="512" cy="512" r="330" fill="none" stroke="url(#rimLight)" stroke-width="10"/>
+
+      <!-- letters: layered for glassy 3D depth -->
+      <g font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="800" text-anchor="middle">
+        <!-- soft glow -->
+        <g fill="#FFFFFF" opacity="0.35" filter="url(#blurMd)">
+          <text x="512" y="465" font-size="300">S</text>
+          <text x="418" y="675" font-size="280">B</text>
+          <text x="606" y="675" font-size="280">L</text>
+        </g>
+        <!-- drop/emboss shadow -->
+        <g fill="#02142B" opacity="0.55" filter="url(#blurSm)" transform="translate(6,9)">
+          <text x="512" y="465" font-size="300">S</text>
+          <text x="418" y="675" font-size="280">B</text>
+          <text x="606" y="675" font-size="280">L</text>
+        </g>
+        <!-- main glass body -->
+        <g fill="url(#letterGrad)" stroke="#0B4C8C" stroke-width="2.5" stroke-opacity="0.5">
+          <text x="512" y="465" font-size="300">S</text>
+          <text x="418" y="675" font-size="280">B</text>
+          <text x="606" y="675" font-size="280">L</text>
+        </g>
+        <!-- top bevel highlight sliver -->
+        <g fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="2.5" transform="translate(-2,-2)">
+          <text x="512" y="465" font-size="300">S</text>
+          <text x="418" y="675" font-size="280">B</text>
+          <text x="606" y="675" font-size="280">L</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- outer glass highlight sweep across whole icon -->
+    <path d="M -40 260 Q 512 60 1080 260 L 1080 340 Q 512 160 -40 340 Z" fill="#FFFFFF" opacity="0.06"/>
+
+    <!-- globe rim definition -->
+    <circle cx="512" cy="512" r="336" fill="none" stroke="#010B1E" stroke-opacity="0.35" stroke-width="4"/>
+  </g>
+
+  <!-- inner bezel shading for squircle depth -->
+  <rect x="3" y="3" width="1018" height="1018" rx="226" ry="226" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="4" clip-path="url(#squircle)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="229" ry="229" fill="none" stroke="#010B1E" stroke-opacity="0.35" stroke-width="4"/>
+</svg>
