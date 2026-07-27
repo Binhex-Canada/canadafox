@@ -1,5 +1,5 @@
 diff --git a/browser/base/content/aboutDialog.css b/browser/base/content/aboutDialog.css
-index 017125bc25..ee9cd81778 100644
+index 017125bc25..ec155dbce3 100644
 --- a/browser/base/content/aboutDialog.css
 +++ b/browser/base/content/aboutDialog.css
 @@ -87,6 +87,13 @@
@@ -16,8 +16,25 @@ index 017125bc25..ee9cd81778 100644
  .text-blurb {
    margin-bottom: 10px;
    margin-inline-start: 0;
+diff --git a/browser/base/content/aboutDialog.js b/browser/base/content/aboutDialog.js
+index a2fb4433c7..ba43e00cbd 100644
+--- a/browser/base/content/aboutDialog.js
++++ b/browser/base/content/aboutDialog.js
+@@ -91,6 +91,12 @@ function init() {
+     versionAttributes
+   );
+ 
++  // CanadaFox: show the upstream Firefox/Gecko version this build is
++  // based on, distinct from the CanadaFox version shown above.
++  document.l10n.setAttributes(document.getElementById("cfBasedOn"), "cf-about-based-on", {
++    platformVersion: Services.appinfo.platformVersion,
++  });
++
+   // Show a release notes link if we have a URL.
+   let relNotesLink = document.getElementById("releasenotes");
+   let relNotesPrefType = Services.prefs.getPrefType(
 diff --git a/browser/base/content/aboutDialog.xhtml b/browser/base/content/aboutDialog.xhtml
-index 067eaf8d4e..ecba0e653c 100644
+index 067eaf8d4e..7bad8c3789 100644
 --- a/browser/base/content/aboutDialog.xhtml
 +++ b/browser/base/content/aboutDialog.xhtml
 @@ -14,7 +14,7 @@
@@ -29,23 +46,26 @@ index 067eaf8d4e..ecba0e653c 100644
          >
  #ifdef XP_MACOSX
  #include macWindow.inc.xhtml
-@@ -55,6 +55,7 @@
+@@ -55,6 +55,8 @@
  
          <label id="distribution" class="text-blurb"/>
          <label id="distributionId" class="text-blurb"/>
 +        <description id="cfTagline" data-l10n-id="cf-about-tagline"/>
++        <label id="cfBasedOn" class="text-blurb"/>
  
          <vbox id="detailsBox">
            <hbox id="updateBox">
 diff --git a/browser/locales/en-US/browser/aboutDialog.ftl b/browser/locales/en-US/browser/aboutDialog.ftl
-index 496f125ebc..693986f81e 100644
+index 496f125ebc..6929ffd31d 100644
 --- a/browser/locales/en-US/browser/aboutDialog.ftl
 +++ b/browser/locales/en-US/browser/aboutDialog.ftl
-@@ -5,6 +5,8 @@
+@@ -5,6 +5,10 @@
  aboutDialog-title =
      .title = About { -brand-full-name }
  
 +cf-about-tagline = Because the Internet won’t browse itself!
++
++cf-about-based-on = Based on Firefox { $platformVersion }
 +
  releaseNotes-link = What’s new
  
