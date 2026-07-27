@@ -13,6 +13,13 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   can be disabled or removed like any other extension. See
   `vendor/extensions/README.md` for attribution and update instructions.
 
+### Changed
+- The CanadaFox Settings page now has its own sidebar entry ("CanadaFox",
+  with a Canada-flag icon matching the style of the other sidebar icons)
+  instead of only being reachable as a subsection, and gained a
+  "Pre-installed extensions" section listing uBlock Origin with a link to
+  manage it in `about:addons`.
+
 ### Fixed
 - The first-run Canadian-quote page only ever showed once, then never
   again even if you hadn't closed it. It's now pinned on first run, so it

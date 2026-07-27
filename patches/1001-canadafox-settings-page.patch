@@ -1,14 +1,34 @@
+diff --git a/browser/branding/unofficial/content/canada-flag.svg b/browser/branding/unofficial/content/canada-flag.svg
+new file mode 100644
+index 0000000000..6528848281
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-flag.svg
+@@ -0,0 +1,9 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="context-fill" viewBox="0 0 16 16">
++    <path d="M1 4.5h3.5v7H1z"/>
++    <path fill-opacity="0.3" d="M4.5 4.5h7v7h-7z"/>
++    <path d="M11.5 4.5H15v7h-3.5z"/>
++    <path d="M8 4.3 8.3 5.4 9.5 4.9 9.15 6.0 10.4 6.1 9.4 6.7 10.0 7.9 8.7 7.5 8.9 9.5 8 8.5 7.1 9.5 7.3 7.5 6.0 7.9 6.6 6.7 5.6 6.1 6.85 6.0 6.5 4.9 7.7 5.4Z"/>
++</svg>
 diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
 new file mode 100644
-index 0000000000..e3676dc81c
+index 0000000000..0555035cfb
 --- /dev/null
 +++ b/browser/components/preferences/config/canadafox.mjs
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,63 @@
 +/* This Source Code Form is subject to the terms of the Mozilla Public
 + * License, v. 2.0. If a copy of the MPL was not distributed with this file,
 + * You can obtain one at http://mozilla.org/MPL/2.0/. */
 +
++import { Preferences } from "chrome://global/content/preferences/Preferences.mjs";
 +import { SettingGroupManager } from "chrome://browser/content/preferences/config/SettingGroupManager.mjs";
++
++Preferences.addSetting({ id: "canadafoxIntroText" });
++Preferences.addSetting({ id: "canadafoxAddonsInfo" });
++Preferences.addSetting({ id: "canadafoxAddonsLink" });
 +
 +// The settings referenced below (e.g. "lockPinnedTabs") are registered by
 +// their own feature's config module (tabs-browsing.mjs); this page just
@@ -39,7 +59,38 @@ index 0000000000..e3676dc81c
 +      },
 +    ],
 +  },
++  canadafoxAddons: {
++    l10nId: "canadafox-settings-addons-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "canadafoxAddonsInfo",
++        l10nId: "canadafox-settings-addons-info",
++        control: "moz-message-bar",
++        controlAttrs: {
++          type: "info",
++        },
++      },
++      {
++        id: "canadafoxAddonsLink",
++        l10nId: "canadafox-settings-addons-link",
++        control: "moz-box-link",
++        controlAttrs: {
++          href: "about:addons",
++        },
++      },
++    ],
++  },
 +});
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 490670db04..efd199d3a8 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -20,3 +20,4 @@ browser.jar:
+   content/branding/icon64.png                    (../default64.png)
+   content/branding/icon128.png                   (../default128.png)
+   content/branding/aboutDialog.css
++  content/branding/canada-flag.svg
 diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
 index a84468121d..342d03d18a 100644
 --- a/browser/components/preferences/jar.mn
@@ -53,7 +104,7 @@ index a84468121d..342d03d18a 100644
     content/browser/preferences/config/LegacyPaneMappings.mjs            (config/LegacyPaneMappings.mjs)
     content/browser/preferences/config/search.mjs                        (config/search.mjs)
 diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
-index 8a33117bb6..a04c1781e2 100644
+index 8a33117bb6..96d60f21a3 100644
 --- a/browser/components/preferences/preferences.js
 +++ b/browser/components/preferences/preferences.js
 @@ -482,6 +482,16 @@ const CONFIG_PANES = Object.freeze({
@@ -65,19 +116,45 @@ index 8a33117bb6..a04c1781e2 100644
 +  // this page doesn't move anything, just cross-references it.
 +  canadafox: {
 +    l10nId: "canadafox-settings-header",
-+    groupIds: ["canadafoxIntro", "canadafoxTabs"],
-+    iconSrc: "chrome://branding/content/icon32.png",
++    groupIds: ["canadafoxIntro", "canadafoxTabs", "canadafoxAddons"],
++    iconSrc: "chrome://branding/content/canada-flag.svg",
 +    module: "chrome://browser/content/preferences/config/canadafox.mjs",
 +    visible: () => srdSectionPrefs.all,
 +  },
    translations: {
      parent: srdSectionEnabled("languages") ? "languages" : "general",
      l10nId: "settings-translations-subpage-header",
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+index 61660d27e8..173102401d 100644
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -161,6 +161,11 @@
+         iconsrc="chrome://global/skin/icons/cursor-arrow.svg"
+         data-l10n-id="pane-tabs-browsing-title2">
+       </html:moz-page-nav-button>
++      <html:moz-page-nav-button id="category-canadafox"
++        view="paneCanadafox"
++        iconsrc="chrome://branding/content/canada-flag.svg"
++        data-l10n-id="pane-canadafox-title">
++      </html:moz-page-nav-button>
+       <html:hr class="nav-separator" id="nav-separator" role="presentation" />
+       <html:moz-page-nav-button id="category-accessibility"
+         view="paneAccessibility"
 diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
-index 1b579b0bc0..4de71b14ae 100644
+index 1b579b0bc0..9415fc5e36 100644
 --- a/browser/locales/en-US/browser/preferences/preferences.ftl
 +++ b/browser/locales/en-US/browser/preferences/preferences.ftl
-@@ -2741,3 +2741,17 @@ security-privacy-issue-warning-ech2 =
+@@ -247,6 +247,9 @@ tabs-browsing-section =
+ pane-tabs-browsing-title2 = Tabs and browsing
+   .title = Tabs and browsing
+ 
++pane-canadafox-title = CanadaFox
++  .title = CanadaFox
++
+ tabs-group-header2 =
+   .label = Tabs
+ 
+@@ -2741,3 +2744,26 @@ security-privacy-issue-warning-ech2 =
  security-privacy-issue-warning-proxy-autodetection =
    .label = Proxy auto-configuration is enabled
    .description = Proxy auto-configuration could let untrusted networks to monitor your activity.
@@ -85,7 +162,7 @@ index 1b579b0bc0..4de71b14ae 100644
 +## CanadaFox-specific settings page
 +
 +canadafox-settings-header =
-+    .heading = CanadaFox Settings
++    .heading = CanadaFox
 +
 +canadafox-settings-intro-group =
 +    .label = About these settings
@@ -95,3 +172,12 @@ index 1b579b0bc0..4de71b14ae 100644
 +
 +canadafox-settings-tabs-group =
 +    .label = Tabs
++
++canadafox-settings-addons-group =
++    .label = Pre-installed extensions
++
++canadafox-settings-addons-info =
++    .message = uBlock Origin comes pre-installed, unmodified, and Mozilla-signed. It updates itself automatically and you can disable or remove it like any other extension.
++
++canadafox-settings-addons-link =
++    .label = Manage extensions
