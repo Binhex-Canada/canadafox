@@ -3,7 +3,7 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.0.1] - Unreleased
+## [0.0.1] - 2026-07-27
 
 ### Added
 - DuckDuckGo set as the default search engine.
@@ -18,6 +18,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   page. Static for now — may pull from a public archive of random Canadian
   facts later.
 - Custom About-dialog tagline ("Because the Internet won't browse itself!").
+- About dialog now also shows "Based on Firefox `<version>`", the upstream
+  Gecko platform version, alongside the CanadaFox version.
 - Typing a URL or search into the address bar opens in a new tab instead of
   overwriting the current one (except on a blank/new tab), matching
   Safari-style tab persistence.
@@ -34,6 +36,9 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - About dialog, New Tab, and Private Browsing pages still showed "Nightly"
   after the rebrand — the wordmark was vector artwork with the name drawn
   in, not a translatable string. Replaced with a text-based wordmark.
+- The first-run Canadian-quote page was opening in a background tab while
+  a blank New Tab loaded in front of it, hiding it. Switched to Firefox's
+  built-in first-run mechanism so the quote page is the sole startup tab.
 
 ## [Unreleased scaffold]
 - Initial patch-fork of Firefox with telemetry and tracking removed:
