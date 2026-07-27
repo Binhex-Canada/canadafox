@@ -1,0 +1,97 @@
+diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
+new file mode 100644
+index 0000000000..e3676dc81c
+--- /dev/null
++++ b/browser/components/preferences/config/canadafox.mjs
+@@ -0,0 +1,36 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
++ * You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++import { SettingGroupManager } from "chrome://browser/content/preferences/config/SettingGroupManager.mjs";
++
++// The settings referenced below (e.g. "lockPinnedTabs") are registered by
++// their own feature's config module (tabs-browsing.mjs); this page just
++// collects them in one place so they're easy to find, without moving them
++// out of their normal section.
++SettingGroupManager.registerGroups({
++  canadafoxIntro: {
++    l10nId: "canadafox-settings-intro-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "canadafoxIntroText",
++        l10nId: "canadafox-settings-intro",
++        control: "moz-message-bar",
++        controlAttrs: {
++          type: "info",
++        },
++      },
++    ],
++  },
++  canadafoxTabs: {
++    l10nId: "canadafox-settings-tabs-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "lockPinnedTabs",
++        l10nId: "lock-pinned-tabs",
++      },
++    ],
++  },
++});
+diff --git a/browser/components/preferences/jar.mn b/browser/components/preferences/jar.mn
+index a84468121d..342d03d18a 100644
+--- a/browser/components/preferences/jar.mn
++++ b/browser/components/preferences/jar.mn
+@@ -44,6 +44,7 @@ browser.jar:
+    content/browser/preferences/config/languages.mjs                     (config/languages.mjs)
+    content/browser/preferences/config/permissions-data.mjs              (config/permissions-data.mjs)
+    content/browser/preferences/config/tabs-browsing.mjs                 (config/tabs-browsing.mjs)
++   content/browser/preferences/config/canadafox.mjs                     (config/canadafox.mjs)
+    content/browser/preferences/config/privacy.mjs                       (config/privacy.mjs)
+    content/browser/preferences/config/LegacyPaneMappings.mjs            (config/LegacyPaneMappings.mjs)
+    content/browser/preferences/config/search.mjs                        (config/search.mjs)
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index 8a33117bb6..a04c1781e2 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -482,6 +482,16 @@ const CONFIG_PANES = Object.freeze({
+     module: "chrome://browser/content/preferences/config/tabs-browsing.mjs",
+     visible: () => srdSectionEnabled("tabsBrowsing"),
+   },
++  // CanadaFox: dedicated page collecting every CanadaFox-specific setting
++  // in one place. Each setting also stays visible in its normal section;
++  // this page doesn't move anything, just cross-references it.
++  canadafox: {
++    l10nId: "canadafox-settings-header",
++    groupIds: ["canadafoxIntro", "canadafoxTabs"],
++    iconSrc: "chrome://branding/content/icon32.png",
++    module: "chrome://browser/content/preferences/config/canadafox.mjs",
++    visible: () => srdSectionPrefs.all,
++  },
+   translations: {
+     parent: srdSectionEnabled("languages") ? "languages" : "general",
+     l10nId: "settings-translations-subpage-header",
+diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
+index 1b579b0bc0..4de71b14ae 100644
+--- a/browser/locales/en-US/browser/preferences/preferences.ftl
++++ b/browser/locales/en-US/browser/preferences/preferences.ftl
+@@ -2741,3 +2741,17 @@ security-privacy-issue-warning-ech2 =
+ security-privacy-issue-warning-proxy-autodetection =
+   .label = Proxy auto-configuration is enabled
+   .description = Proxy auto-configuration could let untrusted networks to monitor your activity.
++
++## CanadaFox-specific settings page
++
++canadafox-settings-header =
++    .heading = CanadaFox Settings
++
++canadafox-settings-intro-group =
++    .label = About these settings
++
++canadafox-settings-intro =
++    .message = These are settings unique to CanadaFox — you won't find them in stock Firefox. Each one also appears in its normal section above; this page just collects them in one place.
++
++canadafox-settings-tabs-group =
++    .label = Tabs

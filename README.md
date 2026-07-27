@@ -3,7 +3,9 @@
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
 
-There is no point in using this software. Why would you use this?
+There is no point in using this software. Why would you use this? This was created during a fever dream.W
+
+See [CHANGELOG.md](CHANGELOG.md) for what's changed release to release.
 
 This repo does **not** vendor the Firefox source tree. It holds:
 
@@ -11,6 +13,7 @@ This repo does **not** vendor the Firefox source tree. It holds:
 - `mozconfig` — build configuration
 - `scripts/` — fetch, patch, bootstrap, and build helpers
 - `branding/` — app name/icon overrides (added later)
+- `CHANGELOG.md` — release history
 
 The upstream source is cloned into `./firefox/` (gitignored) so it can be
 re-fetched and re-patched against new Firefox releases, the same model
@@ -33,7 +36,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.1` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 12 (see `patches/`) |
+| Patches applied | 13 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -48,7 +51,12 @@ navigation (e.g. a page redirecting itself via `window.location`) isn't
 covered by this yet. This setting is flagged in Settings as CanadaFox-specific,
 since it doesn't exist in stock Firefox.
 
+Note: every CanadaFox-specific setting also shows up together on its own
+page (Settings → CanadaFox Settings) as a cross-reference, in addition to
+staying in its normal section — nothing is moved out of where a Firefox
+user would expect to find it.
+
 Note: the first-run tab that normally opens Mozilla's privacy policy page
-is disabled for now (`datareporting.policy.firstRunURL` blanked out) —
-the plan is to eventually point it at a public, freely-usable source for
-a random Canadian fact instead, once one's been found.
+instead opens a local, self-contained page (no network request) with a
+Canadian historical quote. Static for now — may switch to pulling a
+random fact from a public archive later, once one's been found.

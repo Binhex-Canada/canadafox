@@ -1,15 +1,16 @@
 diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
-index 9496c9b8d5..0987ad875a 100644
+index 9496c9b8d5..6f814d7b70 100644
 --- a/browser/app/profile/firefox.js
 +++ b/browser/app/profile/firefox.js
-@@ -2516,6 +2516,11 @@ pref("toolkit.telemetry.updatePing.enabled", true);
+@@ -2516,6 +2516,12 @@ pref("toolkit.telemetry.updatePing.enabled", true);
  // Enables sending 'bhr' pings when the browser hangs.
  pref("toolkit.telemetry.bhrPing.enabled", true);
  
-+// CanadaFox: blank out the first-run tab that otherwise opens
-+// mozilla.org's privacy policy page. Placeholder until we point this at a
-+// public source for a random Canadian fact instead.
-+pref("datareporting.policy.firstRunURL", "");
++// CanadaFox: replaces the first-run tab that otherwise opens mozilla.org's
++// privacy policy page with a local, self-contained page (a data: URI, no
++// network request) showing a Canadian historical quote. Static for now;
++// may switch to pulling a random fact from a public archive later.
++pref("datareporting.policy.firstRunURL", "data:text/html;base64,PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4KPHRpdGxlPldlbGNvbWUgdG8gQ2FuYWRhRm94PC90aXRsZT4KPHN0eWxlPgogIGh0bWwsIGJvZHkgewogICAgbWFyZ2luOiAwOwogICAgaGVpZ2h0OiAxMDAlOwogICAgYmFja2dyb3VuZDogIzEzMDgyOTsKICAgIGNvbG9yOiAjZmZmOwogICAgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sICJIZWx2ZXRpY2EgTmV1ZSIsIEFyaWFsLCBzYW5zLXNlcmlmOwogIH0KICBib2R5IHsKICAgIGRpc3BsYXk6IGZsZXg7CiAgICBhbGlnbi1pdGVtczogY2VudGVyOwogICAganVzdGlmeS1jb250ZW50OiBjZW50ZXI7CiAgICBwYWRkaW5nOiA0MHB4IDI0cHg7CiAgICBib3gtc2l6aW5nOiBib3JkZXItYm94OwogIH0KICBtYWluIHsKICAgIG1heC13aWR0aDogNjQwcHg7CiAgICB0ZXh0LWFsaWduOiBjZW50ZXI7CiAgfQogIGgxIHsKICAgIGZvbnQtc2l6ZTogMjBweDsKICAgIGZvbnQtd2VpZ2h0OiA3MDA7CiAgICBsZXR0ZXItc3BhY2luZzogMC4wMmVtOwogICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgIGNvbG9yOiAjZDY0NTUwOwogICAgbWFyZ2luOiAwIDAgMjhweDsKICB9CiAgYmxvY2txdW90ZSB7CiAgICBtYXJnaW46IDA7CiAgICBmb250LXNpemU6IDMwcHg7CiAgICBsaW5lLWhlaWdodDogMS40OwogICAgZm9udC1zdHlsZTogaXRhbGljOwogICAgZm9udC13ZWlnaHQ6IDYwMDsKICB9CiAgYmxvY2txdW90ZTo6YmVmb3JlIHsKICAgIGNvbnRlbnQ6ICJcMjAxQyI7CiAgfQogIGJsb2NrcXVvdGU6OmFmdGVyIHsKICAgIGNvbnRlbnQ6ICJcMjAxRCI7CiAgfQogIGNpdGUgewogICAgZGlzcGxheTogYmxvY2s7CiAgICBtYXJnaW4tdG9wOiAyOHB4OwogICAgZm9udC1zdHlsZTogbm9ybWFsOwogICAgZm9udC1zaXplOiAxNXB4OwogICAgbGluZS1oZWlnaHQ6IDEuNzsKICAgIGNvbG9yOiByZ2JhKDI1NSwgMjU1LCAyNTUsIDAuNyk7CiAgfQogIGNpdGUgc3Ryb25nIHsKICAgIGNvbG9yOiAjZmZmOwogIH0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KPG1haW4+CiAgPGgxPldlbGNvbWUgdG8gQ2FuYWRhRm94PC9oMT4KICA8YmxvY2txdW90ZT5UaGUgMjB0aCBjZW50dXJ5IHNoYWxsIGJlIHRoZSBjZW50dXJ5IG9mIENhbmFkYSBhbmQgQ2FuYWRpYW4gZGV2ZWxvcG1lbnQuIEZvciB0aGUgbmV4dCAxMDAgeWVhcnMsIENhbmFkYSBzaGFsbCBiZSB0aGUgc3RhciB0b3dhcmRzIHdoaWNoIGFsbCBtZW4gd2hvIGxvdmUgcHJvZ3Jlc3MgYW5kIGZyZWVkb20gc2hhbGwgY29tZS48L2Jsb2NrcXVvdGU+CiAgPGNpdGU+CiAgICA8c3Ryb25nPlByaW1lIE1pbmlzdGVyIFNpciBXaWxmcmlkIExhdXJpZXI8L3N0cm9uZz48YnI+CiAgICBNYXNzZXkgSGFsbCwgVG9yb250bywgT250YXJpbyAmbWRhc2g7IE9jdG9iZXIgMTQsIDE5MDQKICA8L2NpdGU+CjwvbWFpbj4KPC9ib2R5Pgo8L2h0bWw+Cg==");
 +
  // Enable GMP support in the addon manager.
  pref("media.gmp-provider.enabled", true);
