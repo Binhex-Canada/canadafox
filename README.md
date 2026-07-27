@@ -13,6 +13,7 @@ This repo does **not** vendor the Firefox source tree. It holds:
 - `mozconfig` — build configuration
 - `scripts/` — fetch, patch, bootstrap, and build helpers
 - `branding/` — app name/icon overrides (added later)
+- `vendor/` — unmodified, third-party binary assets (see `vendor/extensions/README.md`)
 - `CHANGELOG.md` — release history
 
 The upstream source is cloned into `./firefox/` (gitignored) so it can be
@@ -36,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.1` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 14 (see `patches/`) |
+| Patches applied | 15 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -60,3 +61,11 @@ Note: the first-run tab that normally opens Mozilla's privacy policy page
 instead opens a local, self-contained page (no network request) with a
 Canadian historical quote. Static for now — may switch to pulling a
 random fact from a public archive later, once one's been found.
+
+Note: [uBlock Origin](https://addons.mozilla.org/firefox/addon/ublock-origin/)
+comes pre-installed, unmodified, and Mozilla-signed — same name, same
+author (Raymond Hill & contributors), same GPLv3 license, and it updates
+itself through the normal AMO update mechanism like any extension you'd
+install yourself. CanadaFox doesn't own, modify, or sell it; see
+`vendor/extensions/README.md` for attribution and how to pull in updates.
+Users can disable or remove it like any other extension.

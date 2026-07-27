@@ -33,3 +33,11 @@ if [ -f branding/icon/canadafox.icns ]; then
   cp branding/icon/canadafox.icns "$DEST/browser/branding/unofficial/firefox.icns"
   echo "Copied branding/icon/canadafox.icns -> $DEST/browser/branding/unofficial/firefox.icns"
 fi
+
+# Vendored, unmodified, Mozilla-signed extension xpis (see vendor/extensions/
+# README.md) get copied in the same way, rather than committed as a diff.
+if [ -d vendor/extensions ]; then
+  mkdir -p "$DEST/browser/app/distribution/extensions"
+  cp vendor/extensions/*.xpi "$DEST/browser/app/distribution/extensions/"
+  echo "Copied vendor/extensions/*.xpi -> $DEST/browser/app/distribution/extensions/"
+fi

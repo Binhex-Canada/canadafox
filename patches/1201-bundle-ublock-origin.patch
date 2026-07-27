@@ -1,0 +1,17 @@
+diff --git a/browser/app/distribution/moz.build b/browser/app/distribution/moz.build
+index d2ee13d72e..0a175ac0a4 100644
+--- a/browser/app/distribution/moz.build
++++ b/browser/app/distribution/moz.build
+@@ -16,3 +16,12 @@ if CONFIG["BUILT_BY_MOZILLA"]:
+ FINAL_TARGET_FILES.distribution += [
+     "policies.json",
+ ]
++
++# CanadaFox: pre-install uBlock Origin as a normal, unmodified, Mozilla-signed
++# extension (vendored from addons.mozilla.org; see vendor/extensions/README.md
++# in the canadafox repo for version/attribution/update details). It keeps its
++# own identity and updates itself through the regular AMO update mechanism;
++# users can disable or remove it like any other extension.
++FINAL_TARGET_FILES.distribution.extensions += [
++    "extensions/uBlock0@raymondhill.net.xpi",
++]

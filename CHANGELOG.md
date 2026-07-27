@@ -5,6 +5,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- [uBlock Origin](https://addons.mozilla.org/firefox/addon/ublock-origin/)
+  now comes pre-installed as a normal, unmodified, Mozilla-signed extension
+  (`1.72.2` at time of vendoring) — same name, author, and GPLv3 license as
+  upstream, updates itself through the regular AMO update mechanism, and
+  can be disabled or removed like any other extension. See
+  `vendor/extensions/README.md` for attribution and update instructions.
+
 ### Fixed
 - The first-run Canadian-quote page only ever showed once, then never
   again even if you hadn't closed it. It's now pinned on first run, so it
