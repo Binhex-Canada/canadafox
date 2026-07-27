@@ -33,7 +33,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.1` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 10 (see `patches/`) |
+| Patches applied | 12 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -45,4 +45,10 @@ tabs from navigating away*) — any link click or address-bar entry on a
 pinned tab opens in a new tab instead, matching how Safari-style tabs
 behave. Unpin a tab to get normal navigation back. Pure JS-driven
 navigation (e.g. a page redirecting itself via `window.location`) isn't
-covered by this yet.
+covered by this yet. This setting is flagged in Settings as CanadaFox-specific,
+since it doesn't exist in stock Firefox.
+
+Note: the first-run tab that normally opens Mozilla's privacy policy page
+is disabled for now (`datareporting.policy.firstRunURL` blanked out) —
+the plan is to eventually point it at a public, freely-usable source for
+a random Canadian fact instead, once one's been found.

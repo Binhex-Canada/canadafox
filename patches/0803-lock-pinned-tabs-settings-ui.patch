@@ -42,13 +42,14 @@ diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser
 index c55ffd6f23..060031ff14 100644
 --- a/browser/locales/en-US/browser/preferences/preferences.ftl
 +++ b/browser/locales/en-US/browser/preferences/preferences.ftl
-@@ -298,6 +298,10 @@ show-tabs-in-taskbar =
+@@ -298,6 +298,11 @@ show-tabs-in-taskbar =
      .label = Show tab previews in the Windows taskbar
      .accesskey = k
- 
+
 +lock-pinned-tabs =
 +    .label = Keep pinned tabs from navigating away (links open in a new tab instead)
 +    .accesskey = P
++    .description = CanadaFox-specific setting, not present in stock Firefox.
 +
  browser-containers-enabled-2 =
      .label = Use Container Tabs

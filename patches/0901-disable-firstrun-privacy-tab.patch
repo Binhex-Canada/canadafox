@@ -1,0 +1,16 @@
+diff --git a/browser/app/profile/firefox.js b/browser/app/profile/firefox.js
+index 9496c9b8d5..0987ad875a 100644
+--- a/browser/app/profile/firefox.js
++++ b/browser/app/profile/firefox.js
+@@ -2516,6 +2516,11 @@ pref("toolkit.telemetry.updatePing.enabled", true);
+ // Enables sending 'bhr' pings when the browser hangs.
+ pref("toolkit.telemetry.bhrPing.enabled", true);
+ 
++// CanadaFox: blank out the first-run tab that otherwise opens
++// mozilla.org's privacy policy page. Placeholder until we point this at a
++// public source for a random Canadian fact instead.
++pref("datareporting.policy.firstRunURL", "");
++
+ // Enable GMP support in the addon manager.
+ pref("media.gmp-provider.enabled", true);
+ 
