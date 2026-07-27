@@ -24,7 +24,7 @@ index 65b6e4710a..eb8a3f9177 100644
  // It's enabled by default, but could be disabled to force ASRouter to use the local files.
  pref("browser.newtabpage.activity-stream.asrouter.useRemoteL10n", true);
  
-+// Super Browser Land: pin these to false as compile-time defaults so New
++// CanadaFox: pin these to false as compile-time defaults so New
 +// Tab's own PrefsFeed (which only fills in *missing* defaults) can't reset
 +// them to true at startup.
 +pref("browser.newtabpage.activity-stream.showSponsored", false);

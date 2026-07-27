@@ -1,0 +1,29 @@
+diff --git a/browser/app/distribution/policies.json b/browser/app/distribution/policies.json
+new file mode 100644
+index 0000000000..bb4c1cbde2
+--- /dev/null
++++ b/browser/app/distribution/policies.json
+@@ -0,0 +1,7 @@
++{
++  "policies": {
++    "SearchEngines": {
++      "Default": "DuckDuckGo"
++    }
++  }
++}
+diff --git a/browser/app/distribution/moz.build b/browser/app/distribution/moz.build
+index b174449a09..4ebeab9cb4 100644
+--- a/browser/app/distribution/moz.build
++++ b/browser/app/distribution/moz.build
+@@ -8,3 +8,11 @@ if CONFIG["BUILT_BY_MOZILLA"]:
+     FINAL_TARGET_FILES.distribution += [
+         "distribution.ini",
+     ]
++
++# CanadaFox: ship an enterprise-policy file so the default search
++# engine is set the same way distributors do it (durable across the
++# remote-settings-driven, locale/region search config), rather than a plain
++# pref that config sync could clobber.
++FINAL_TARGET_FILES.distribution += [
++    "policies.json",
++]

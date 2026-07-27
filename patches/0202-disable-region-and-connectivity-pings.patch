@@ -1,5 +1,5 @@
 diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
-index fc81b83242..28f4311d61 100644
+index fc81b83242..222b895169 100644
 --- a/modules/libpref/init/all.js
 +++ b/modules/libpref/init/all.js
 @@ -3113,7 +3113,7 @@ pref("browser.region.network.url", "https://location.services.mozilla.com/v1/cou
@@ -20,12 +20,3 @@ index fc81b83242..28f4311d61 100644
  pref("network.connectivity-service.DNSv4.domain", "example.org");
  pref("network.connectivity-service.DNSv6.domain", "example.org");
  pref("network.connectivity-service.DNS_HTTPS.domain", "cloudflare-dns.com");
-@@ -3395,7 +3395,7 @@ pref("browser.safebrowsing.allowOverride", true);
- 
- // Download protection
- pref("browser.safebrowsing.downloads.enabled", true);
--pref("browser.safebrowsing.downloads.remote.enabled", true);
-+pref("browser.safebrowsing.downloads.remote.enabled", false);
- pref("browser.safebrowsing.downloads.remote.timeout_ms", 15000);
- pref("browser.safebrowsing.downloads.remote.url", "https://sb-ssl.google.com/safebrowsing/clientreport/download?key=%GOOGLE_SAFEBROWSING_API_KEY%");
- pref("browser.safebrowsing.downloads.remote.block_dangerous",            true);

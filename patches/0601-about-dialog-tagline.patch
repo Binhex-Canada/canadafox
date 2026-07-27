@@ -6,7 +6,7 @@ index 017125bc25..ee9cd81778 100644
    margin-block: 0;
  }
  
-+#sblTagline {
++#cfTagline {
 +  font-style: italic;
 +  opacity: 0.75;
 +  margin-block: 4px 10px;
@@ -25,7 +25,7 @@ index 067eaf8d4e..ecba0e653c 100644
  #endif
          role="dialog"
 -        aria-describedby="version distribution distributionId communityDesc contributeDesc trademark"
-+        aria-describedby="version distribution distributionId sblTagline communityDesc contributeDesc trademark"
++        aria-describedby="version distribution distributionId cfTagline communityDesc contributeDesc trademark"
          >
  #ifdef XP_MACOSX
  #include macWindow.inc.xhtml
@@ -33,7 +33,7 @@ index 067eaf8d4e..ecba0e653c 100644
  
          <label id="distribution" class="text-blurb"/>
          <label id="distributionId" class="text-blurb"/>
-+        <description id="sblTagline" data-l10n-id="sbl-about-tagline"/>
++        <description id="cfTagline" data-l10n-id="cf-about-tagline"/>
  
          <vbox id="detailsBox">
            <hbox id="updateBox">
@@ -45,7 +45,7 @@ index 496f125ebc..693986f81e 100644
  aboutDialog-title =
      .title = About { -brand-full-name }
  
-+sbl-about-tagline = Because the Internet won’t browse itself!
++cf-about-tagline = Because the Internet won’t browse itself!
 +
  releaseNotes-link = What’s new
  

@@ -1,4 +1,4 @@
-# Super Browser Land
+# CanadaFox
 
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
@@ -26,22 +26,23 @@ scripts/build.sh          # build (mach build)
 scripts/run.sh            # run the built browser
 ```
 
-## Status
+## Version
 
-- [x] Repo scaffold
-- [x] Fetch upstream Firefox source (`mozilla-firefox/firefox`)
-- [x] First patch set (see `patches/`): Health Report + Normandy/Shield
-      studies disabled at compile time (which also kills the whole
-      data-reporting/data-submission-policy subsystem given our unofficial,
-      crash-reporter-disabled build); Safe Browsing malware/phishing lookups
-      off; region-update and connectivity-service pings off; New Tab
-      sponsored tiles (Contile), Discovery Stream/Pocket recommendations,
-      search SERP telemetry, and the FxA telemetry ping off
-- [ ] Bootstrap build deps and first build
-- [ ] Further passes: Nimbus network calls, ASRouter/CFR messaging fetches,
-      default search partner codes, DoH provider defaults, Merino/Firefox
-      Suggest, branding
+| | |
+|---|---|
+| CanadaFox version | `0.0.1` |
+| Based on | Firefox `155.0a1` |
+| Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
+| Patches applied | 10 (see `patches/`) |
 
-Note: disabling Safe Browsing removes built-in phishing/malware warnings —
-that protection normally works by querying Google, so removing the query
-removes the protection too. Reversible via prefs later if wanted.
+Note: Safe Browsing (phishing/malware warnings) is left on, at stock
+Firefox behavior — it does query Google, unlike everything else this
+project strips out, but the security value was judged worth that one
+exception.
+
+Note: pinned tabs are "locked" by default (Settings → Tabs → *Keep pinned
+tabs from navigating away*) — any link click or address-bar entry on a
+pinned tab opens in a new tab instead, matching how Safari-style tabs
+behave. Unpin a tab to get normal navigation back. Pure JS-driven
+navigation (e.g. a page redirecting itself via `window.location`) isn't
+covered by this yet.

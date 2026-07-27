@@ -1,6 +1,6 @@
-# Build config for Super Browser Land.
+# Build config for CanadaFox.
 # Path is relative to firefox/ since MOZCONFIG is set to this file's absolute path.
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../obj-super-browser-land
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../obj-canadafox
 
 ac_add_options --enable-application=browser
 ac_add_options --disable-crashreporter

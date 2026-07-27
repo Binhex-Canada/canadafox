@@ -7,7 +7,7 @@
 
 # Regeneratable icon render output (source of truth is branding/icon/icon.svg)
 /branding/icon/icon.svg.png
-/branding/icon/superbrowserland.iconset/
+/branding/icon/canadafox.iconset/
 
 # macOS
 .DS_Store

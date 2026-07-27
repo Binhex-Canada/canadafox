@@ -7,7 +7,7 @@ index eb8a3f9177..dd9f0bf0c9 100644
  // Whether addresses and search results typed into the address bar
  // should be opened in new tabs by default.
 -pref("browser.urlbar.openintab", false);
-+// Super Browser Land: on by default (Safari-style tab persistence) — typing
++// CanadaFox: on by default (Safari-style tab persistence) — typing
 +// a URL never overwrites the current tab, except when the current tab is
 +// blank/empty (about:newtab, about:blank), where it still navigates in
 +// place. Existing modifier-key behavior (e.g. alt+enter) is unaffected.
@@ -20,7 +20,7 @@ index eb8a3f9177..dd9f0bf0c9 100644
  
  // search bar results always open in a new tab
 -pref("browser.search.openintab", false);
-+// Super Browser Land: matches browser.urlbar.openintab above, for the
++// CanadaFox: matches browser.urlbar.openintab above, for the
 +// (legacy, off-screen-by-default) separate search bar widget.
 +pref("browser.search.openintab", true);
  

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Rasterizes branding/icon/icon.svg into branding/icon/superbrowserland.icns.
+# Rasterizes branding/icon/icon.svg into branding/icon/canadafox.icns.
 # Uses macOS's own SVG renderer (qlmanage) since there's no rsvg-convert here.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SRC="branding/icon/icon.svg"
 DIR="branding/icon"
-ICONSET="$DIR/superbrowserland.iconset"
+ICONSET="$DIR/canadafox.iconset"
 
 rm -f "$DIR/icon.svg.png"
 qlmanage -t -s 1024 -o "$DIR" "$SRC" >/dev/null
@@ -32,5 +32,5 @@ for spec in "${sizes[@]}"; do
   sips -z "$size" "$size" "$DIR/icon.svg.png" --out "$ICONSET/$name" >/dev/null
 done
 
-iconutil -c icns "$ICONSET" -o "$DIR/superbrowserland.icns"
-echo "Wrote $DIR/superbrowserland.icns"
+iconutil -c icns "$ICONSET" -o "$DIR/canadafox.icns"
+echo "Wrote $DIR/canadafox.icns"

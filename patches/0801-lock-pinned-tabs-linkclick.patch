@@ -1,0 +1,38 @@
+diff --git a/docshell/base/nsDocShell.cpp b/docshell/base/nsDocShell.cpp
+index 443218310d..6cf854a6d8 100644
+--- a/docshell/base/nsDocShell.cpp
++++ b/docshell/base/nsDocShell.cpp
+@@ -12307,6 +12307,14 @@ bool nsDocShell::ShouldOpenInBlankTarget(const nsAString& aOriginalTarget,
+     return false;
+   }
+ 
++  // CanadaFox: with browser.tabs.lockPinnedTabs enabled, a pinned
++  // tab is fully locked to its page — every link click opens in a new tab,
++  // not just cross-origin ones.
++  if (StaticPrefs::browser_tabs_lockPinnedTabs() &&
++      mBrowsingContext->IsAppTab()) {
++    return true;
++  }
++
+   nsAutoCString docHost;
+   if (NS_FAILED(docURI->GetHost(docHost))) {
+     return false;
+diff --git a/modules/libpref/init/StaticPrefList.yaml b/modules/libpref/init/StaticPrefList.yaml
+index cf780fdedc..05be59bc09 100644
+--- a/modules/libpref/init/StaticPrefList.yaml
++++ b/modules/libpref/init/StaticPrefList.yaml
+@@ -2109,6 +2109,14 @@
+   value: true
+   mirror: always
+ 
++# CanadaFox: when true, pinned tabs are "locked" — any link click
++# (same-origin or cross-origin) opens in a new tab instead of navigating the
++# pinned tab away from its page. Unpinning a tab restores normal navigation.
++- name: browser.tabs.lockPinnedTabs
++  type: bool
++  value: true
++  mirror: always
++
+ # Whether we should draw the tabs on top of the titlebar.
+ #
+ # no (0), yes (1), or default (2), which is true everywhere except Linux.

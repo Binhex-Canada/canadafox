@@ -8,8 +8,8 @@ index f42e11ddad..9d524dee83 100644
  
 -MOZ_APP_DISPLAYNAME=Nightly
 -MOZ_MACBUNDLE_ID=nightlyunofficial
-+MOZ_APP_DISPLAYNAME="Super Browser Land"
-+MOZ_MACBUNDLE_ID=superbrowserland
++MOZ_APP_DISPLAYNAME="CanadaFox"
++MOZ_MACBUNDLE_ID=canadafox
 diff --git a/browser/branding/unofficial/locales/en-US/brand.ftl b/browser/branding/unofficial/locales/en-US/brand.ftl
 index 5eaea9a7c4..20aefa5472 100644
 --- a/browser/branding/unofficial/locales/en-US/brand.ftl
@@ -22,16 +22,16 @@ index 5eaea9a7c4..20aefa5472 100644
 --brand-short-name = Nightly
 --brand-shortcut-name = Nightly
 --brand-full-name = Nightly
-+-brand-shorter-name = Super Browser Land
-+-brand-short-name = Super Browser Land
-+-brand-shortcut-name = Super Browser Land
-+-brand-full-name = Super Browser Land
++-brand-shorter-name = CanadaFox
++-brand-short-name = CanadaFox
++-brand-shortcut-name = CanadaFox
++-brand-full-name = CanadaFox
  # This brand name can be used in messages where the product name needs to
  # remain unchanged across different versions (Nightly, Beta, etc.).
 --brand-product-name = Firefox
 --vendor-short-name = Mozilla
-+-brand-product-name = Super Browser Land
-+-vendor-short-name = Super Browser Land
++-brand-product-name = CanadaFox
++-vendor-short-name = CanadaFox
  trademarkInfo = { " " }
 diff --git a/browser/branding/unofficial/locales/en-US/brand.properties b/browser/branding/unofficial/locales/en-US/brand.properties
 index 346c3bdb50..1da1e5be4d 100644
@@ -44,9 +44,9 @@ index 346c3bdb50..1da1e5be4d 100644
 -brandShorterName=Nightly
 -brandShortName=Nightly
 -brandFullName=Nightly
-+brandShorterName=Super Browser Land
-+brandShortName=Super Browser Land
-+brandFullName=Super Browser Land
++brandShorterName=CanadaFox
++brandShortName=CanadaFox
++brandFullName=CanadaFox
 diff --git a/browser/config/version.txt b/browser/config/version.txt
 index efd47b4b23..8acdd82b76 100644
 --- a/browser/config/version.txt

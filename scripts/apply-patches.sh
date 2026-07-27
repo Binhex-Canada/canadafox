@@ -29,7 +29,7 @@ echo "Applied ${#patches[@]} patch(es)"
 
 # Binary assets (icons etc.) live in branding/ and are copied in rather than
 # diffed, to keep patches/ as plain text.
-if [ -f branding/icon/superbrowserland.icns ]; then
-  cp branding/icon/superbrowserland.icns "$DEST/browser/branding/unofficial/firefox.icns"
-  echo "Copied branding/icon/superbrowserland.icns -> $DEST/browser/branding/unofficial/firefox.icns"
+if [ -f branding/icon/canadafox.icns ]; then
+  cp branding/icon/canadafox.icns "$DEST/browser/branding/unofficial/firefox.icns"
+  echo "Copied branding/icon/canadafox.icns -> $DEST/browser/branding/unofficial/firefox.icns"
 fi

@@ -1,0 +1,20 @@
+diff --git a/browser/components/urlbar/content/UrlbarChildController.mjs b/browser/components/urlbar/content/UrlbarChildController.mjs
+index df5397176e..06412434b4 100644
+--- a/browser/components/urlbar/content/UrlbarChildController.mjs
++++ b/browser/components/urlbar/content/UrlbarChildController.mjs
+@@ -743,6 +743,15 @@ export class UrlbarChildController {
+     ) {
+       where = "current";
+     }
++    // CanadaFox: a locked pinned tab never navigates in place, even
++    // via the address bar — takes priority over the empty-tab reuse above.
++    if (
++      where == "current" &&
++      this.window.gBrowser?.selectedTab.pinned &&
++      Services.prefs.getBoolPref("browser.tabs.lockPinnedTabs", true)
++    ) {
++      where = "tab";
++    }
+     return where;
+   }
+ 
