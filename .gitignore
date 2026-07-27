@@ -5,6 +5,9 @@
 /obj-*/
 *.log
 
+# Packaged release artifacts (uploaded to GitHub Releases, not committed)
+/dist-release/
+
 # Regeneratable icon render output (source of truth is branding/icon/icon.svg)
 /branding/icon/icon.svg.png
 /branding/icon/canadafox.iconset/
