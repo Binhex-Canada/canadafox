@@ -3,6 +3,14 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+- The first-run Canadian-quote page only ever showed once, then never
+  again even if you hadn't closed it. It's now pinned on first run, so it
+  persists across restarts like any other pinned tab — it sticks around
+  until you close it, then it's gone for good.
+
 ## [0.0.1] - 2026-07-27
 
 ### Added

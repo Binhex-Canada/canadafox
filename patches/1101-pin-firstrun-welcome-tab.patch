@@ -1,0 +1,41 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 5425a9883a..80664cb6d8 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -797,6 +797,8 @@ BrowserGlue.prototype = {
+ 
+     this._checkForOldBuildUpdates();
+ 
++    this._maybePinFirstRunWelcomeTab(aWindow);
++
+     // Check if Sync is configured
+     if (Services.prefs.prefHasUserValue("services.sync.username")) {
+       lazy.WeaveService.init();
+@@ -813,6 +815,27 @@ BrowserGlue.prototype = {
+     this._firstWindowTelemetry(aWindow);
+   },
+ 
++  // CanadaFox: pin the first-run welcome tab (startup.homepage_welcome_url)
++  // so it persists across restarts like any other pinned tab, instead of
++  // only ever showing once. It sticks around until the user closes it.
++  _maybePinFirstRunWelcomeTab(aWindow) {
++    if (!lazy.BrowserHandler.firstRunProfile) {
++      return;
++    }
++    let welcomeURL = Services.urlFormatter.formatURLPref(
++      "startup.homepage_welcome_url"
++    );
++    if (!welcomeURL) {
++      return;
++    }
++    for (let tab of aWindow.gBrowser.tabs) {
++      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
++        aWindow.gBrowser.pinTab(tab);
++        break;
++      }
++    }
++  },
++
+   _maybeOfferProfileReset() {
+     // Offer to reset a user's profile if it hasn't been used for 60 days.
+     const OFFER_PROFILE_RESET_INTERVAL_MS = 60 * 24 * 60 * 60 * 1000;
