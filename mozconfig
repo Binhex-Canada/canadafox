@@ -6,5 +6,11 @@ ac_add_options --enable-application=browser
 ac_add_options --disable-crashreporter
 ac_add_options --disable-tests
 
+# Speeds up incremental/repeat local builds by caching compiled objects
+# (C/C++ and Rust) across `mach build` runs, e.g. after `apply-patches.sh`
+# resets and re-applies patches on top of an otherwise-unchanged tree.
+ac_add_options --with-ccache=sccache
+mk_add_options 'export RUSTC_WRAPPER=sccache'
+
 # TODO: revisit once firefox/ is fetched and we've confirmed current flag
 # names/branding options against the tree (they drift between releases).
