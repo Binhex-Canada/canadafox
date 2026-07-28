@@ -6,25 +6,25 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- [uBlock Origin](https://addons.mozilla.org/firefox/addon/ublock-origin/)
-  now comes pre-installed as a normal, unmodified, Mozilla-signed extension
-  (`1.72.2` at time of vendoring) — same name, author, and GPLv3 license as
-  upstream, updates itself through the regular AMO update mechanism, and
-  can be disabled or removed like any other extension. See
-  `vendor/extensions/README.md` for attribution and update instructions.
-
-### Changed
-- The CanadaFox Settings page now has its own sidebar entry ("CanadaFox",
-  with a Canada-flag icon matching the style of the other sidebar icons)
-  instead of only being reachable as a subsection, and gained a
-  "Pre-installed extensions" section listing uBlock Origin with a link to
-  manage it in `about:addons`.
+- uBlock Origin bundled as a pre-installed, unmodified extension (auto-updates
+  from AMO like any normal add-on; kept under its own name, authorship, and
+  version — CanadaFox doesn't claim it or fork it).
+- A dedicated **CanadaFox** section in the Settings sidebar (its own icon, a
+  Canadian flag matching the size/style of the other sidebar icons) collecting
+  every CanadaFox-specific setting in one place, plus a list of the
+  pre-installed add-ons.
+- A full-color Canadian flag button, hard-coded into the main toolbar next to
+  the app menu.
+- AI features (chat sidebar, Smart Window, smart tab groups, link-preview key
+  points, PDF alt-text, and the AI Controls settings pane itself) locked off
+  by default via distribution policy, with no in-app way to turn them back
+  on. On-device page Translations is untouched and still works.
 
 ### Fixed
-- The first-run Canadian-quote page only ever showed once, then never
-  again even if you hadn't closed it. It's now pinned on first run, so it
-  persists across restarts like any other pinned tab — it sticks around
-  until you close it, then it's gone for good.
+- The first-run Canadian-quote tab now stays pinned and persists across
+  restarts like a normal pinned tab, instead of only appearing on the very
+  first launch. It stays until the user closes it themselves, then it's gone
+  for good.
 
 ## [0.0.1] - 2026-07-27
 

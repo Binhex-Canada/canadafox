@@ -1,0 +1,72 @@
+diff --git a/browser/branding/unofficial/content/canada-flag-color.svg b/browser/branding/unofficial/content/canada-flag-color.svg
+new file mode 100644
+index 0000000000..ac30e639b7
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-flag-color.svg
+@@ -0,0 +1,9 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
++    <path fill="#FF0000" d="M1 4.5h3.5v7H1z"/>
++    <path fill="#FFFFFF" d="M4.5 4.5h7v7h-7z"/>
++    <path fill="#FF0000" d="M11.5 4.5H15v7h-3.5z"/>
++    <path fill="#FF0000" d="M8 4.3 8.3 5.4 9.5 4.9 9.15 6.0 10.4 6.1 9.4 6.7 10.0 7.9 8.7 7.5 8.9 9.5 8 8.5 7.1 9.5 7.3 7.5 6.0 7.9 6.6 6.7 5.6 6.1 6.85 6.0 6.5 4.9 7.7 5.4Z"/>
++</svg>
+diff --git a/browser/base/content/navigator-toolbox.inc.xhtml b/browser/base/content/navigator-toolbox.inc.xhtml
+index 78656360d5..ae1556a705 100644
+--- a/browser/base/content/navigator-toolbox.inc.xhtml
++++ b/browser/base/content/navigator-toolbox.inc.xhtml
+@@ -553,6 +553,11 @@
+                      consumeanchor="PanelUI-button"
+                      data-l10n-id="appmenu-menu-button-closed2"/>
+     </toolbaritem>
++    <toolbaritem id="canadafox-flag-button" removable="false" overflows="false">
++      <toolbarbutton id="canadafox-flag-button-inner"
++                     class="toolbarbutton-1"
++                     data-l10n-id="canadafox-toolbar-flag-button"/>
++    </toolbaritem>
+     <hbox class="titlebar-spacer" type="post-tabs"/>
+ #include private-browsing-indicator.inc.xhtml
+     <toolbarbutton class="content-analysis-indicator toolbarbutton-1 content-analysis-indicator-icon"/>
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index efd199d3a8..8aea4b101d 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -21,3 +21,4 @@ browser.jar:
+   content/branding/icon128.png                   (../default128.png)
+   content/branding/aboutDialog.css
+   content/branding/canada-flag.svg
++  content/branding/canada-flag-color.svg
+diff --git a/browser/locales/en-US/browser/browser.ftl b/browser/locales/en-US/browser/browser.ftl
+index 955d6fb515..c2ff261b59 100644
+--- a/browser/locales/en-US/browser/browser.ftl
++++ b/browser/locales/en-US/browser/browser.ftl
+@@ -1275,6 +1275,9 @@ navbar-downloads =
+ navbar-overflow-2 =
+     .tooltiptext = More tools
+ 
++canadafox-toolbar-flag-button =
++    .tooltiptext = CanadaFox
++
+ # Variables:
+ #   $shortcut (String): keyboard shortcut to print the page
+ navbar-print =
+diff --git a/browser/themes/shared/toolbarbutton-icons.css b/browser/themes/shared/toolbarbutton-icons.css
+index 6ed48dc2d4..39199ac2fa 100644
+--- a/browser/themes/shared/toolbarbutton-icons.css
++++ b/browser/themes/shared/toolbarbutton-icons.css
+@@ -185,6 +185,13 @@
+   list-style-image: url("chrome://mozapps/skin/extensions/extension.svg");
+ }
+ 
++/* CanadaFox: hard-coded, full-color, not tinted by the theme like the
++   monochrome toolbar icons above (the icon itself carries its own colors,
++   not context-fill, so -moz-context-properties has nothing to override). */
++#canadafox-flag-button-inner {
++  list-style-image: url("chrome://branding/content/canada-flag-color.svg");
++}
++
+ #reset-pbm-toolbar-button {
+   list-style-image: url("chrome://browser/skin/flame.svg");
+ }

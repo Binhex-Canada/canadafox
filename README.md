@@ -37,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.1` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 15 (see `patches/`) |
+| Patches applied | 17 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this

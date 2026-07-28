@@ -1,0 +1,40 @@
+diff --git a/browser/app/distribution/policies.json b/browser/app/distribution/policies.json
+index bb4c1cbde2..213665010a 100644
+--- a/browser/app/distribution/policies.json
++++ b/browser/app/distribution/policies.json
+@@ -2,6 +2,35 @@
+   "policies": {
+     "SearchEngines": {
+       "Default": "DuckDuckGo"
++    },
++    "Preferences": {
++      "browser.ml.enable": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.enabled": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.sidebar": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.menu": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.page": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.shortcuts": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.shortcuts.custom": { "Value": false, "Status": "locked" },
++      "browser.ml.chat.shortcuts.smartwindow": { "Value": false, "Status": "locked" },
++      "browser.ml.linkPreview.enabled": { "Value": false, "Status": "locked" },
++      "browser.ml.pageAssist.enabled": { "Value": false, "Status": "locked" },
++      "browser.tabs.groups.smart.enabled": { "Value": false, "Status": "locked" },
++      "browser.tabs.groups.smart.userEnabled": { "Value": false, "Status": "locked" },
++      "browser.tabs.groups.smart.searchTopicEnabled": { "Value": false, "Status": "locked" },
++      "browser.smartwindow.enabled": { "Value": false, "Status": "locked" },
++      "browser.smartwindow.agent.enabled": { "Value": false, "Status": "locked" },
++      "browser.smartwindow.autoTabGrouping.enabled": { "Value": false, "Status": "locked" },
++      "browser.smartwindow.worldcup.enabled": { "Value": false, "Status": "locked" },
++      "browser.preferences.aiControls": { "Value": false, "Status": "locked" },
++      "browser.preferences.aiControls.showUnavailable": { "Value": false, "Status": "locked" },
++      "places.semanticHistory.smartwindow.featureGate": { "Value": false, "Status": "locked" },
++      "browser.ai.control.default": { "Value": "blocked", "Status": "locked" },
++      "browser.ai.control.translations": { "Value": "available", "Status": "locked" },
++      "browser.ai.control.pdfjsAltText": { "Value": "blocked", "Status": "locked" },
++      "browser.ai.control.smartTabGroups": { "Value": "blocked", "Status": "locked" },
++      "browser.ai.control.linkPreviewKeyPoints": { "Value": "blocked", "Status": "locked" },
++      "browser.ai.control.sidebarChatbot": { "Value": "blocked", "Status": "locked" },
++      "browser.ai.control.smartWindow": { "Value": "blocked", "Status": "locked" }
+     }
+   }
+ }
