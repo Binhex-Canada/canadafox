@@ -3,7 +3,7 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.0.2] - 2026-07-28
 
 ### Added
 - uBlock Origin bundled as a pre-installed, unmodified extension (auto-updates

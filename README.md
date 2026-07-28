@@ -3,7 +3,7 @@
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
 
-There is no point in using this software. Why would you use this? This was created during a fever dream.W
+There is no point in using this software. Why would you use this? This was created during a fever dream. Hey,sd wasn't the movie Obession great?
 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed release to release.
 
@@ -34,7 +34,7 @@ scripts/run.sh            # run the built browser
 
 | | |
 |---|---|
-| CanadaFox version | `0.0.1` |
+| CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
 | Patches applied | 17 (see `patches/`) |
