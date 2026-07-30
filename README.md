@@ -37,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 19 (see `patches/`) |
+| Patches applied | 20 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -78,3 +78,10 @@ topsites/shortcuts grid.
 Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
 Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,
 which is shown by default.
+
+Note: once per session, CanadaFox checks
+`github.com/Binhex-Canada/canadafox`'s latest release and shows a
+dismissible notification if a newer version exists — no auto-download or
+install, just a link to go grab it. This is the one intentional network
+call this project adds on top of Safe Browsing; unlike everything else
+it strips out, it only ever talks to this project's own GitHub repo.

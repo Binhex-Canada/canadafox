@@ -12,6 +12,10 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A pre-loaded **Canadian Services** bookmarks folder (Canada Revenue Agency,
   Service Canada, Canada.ca Health, CBC News), shown on the bookmarks
   toolbar by default.
+- CanadaFox checks GitHub once per session for a newer release and shows a
+  dismissible notification bar if one's available, linking to the release
+  page. It never downloads or installs anything automatically, and only
+  notifies once per newly-seen version.
 
 ## [0.0.2] - 2026-07-28
 

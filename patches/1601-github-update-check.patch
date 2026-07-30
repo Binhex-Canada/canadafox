@@ -1,0 +1,77 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 80664cb6d8..5c9d683a4c 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -799,6 +799,8 @@ BrowserGlue.prototype = {
+ 
+     this._maybePinFirstRunWelcomeTab(aWindow);
+ 
++    this._checkForCanadaFoxUpdate(aWindow);
++
+     // Check if Sync is configured
+     if (Services.prefs.prefHasUserValue("services.sync.username")) {
+       lazy.WeaveService.init();
+@@ -836,6 +838,63 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
++  // CanadaFox: once per session, check GitHub for a newer release and show
++  // a dismissible notification if one exists. This never downloads or
++  // applies anything -- it just links to the GitHub release page. Each
++  // newly-seen version is only ever notified once (tracked via a pref), so
++  // restarting doesn't re-nag about a release the user already saw.
++  async _checkForCanadaFoxUpdate(aWindow) {
++    const PREF_LAST_NOTIFIED = "canadafox.update.lastNotifiedVersion";
++    try {
++      let response = await fetch(
++        "https://api.github.com/repos/Binhex-Canada/canadafox/releases/latest"
++      );
++      if (!response.ok) {
++        return;
++      }
++      let { tag_name, html_url } = await response.json();
++      if (!tag_name || !html_url) {
++        return;
++      }
++      let latestVersion = tag_name.replace(/^v/, "");
++      if (Services.vc.compare(latestVersion, Services.appinfo.version) <= 0) {
++        return;
++      }
++      if (
++        Services.prefs.getCharPref(PREF_LAST_NOTIFIED, "") == latestVersion
++      ) {
++        return;
++      }
++      Services.prefs.setCharPref(PREF_LAST_NOTIFIED, latestVersion);
++
++      let win = lazy.BrowserWindowTracker.getTopWindow({
++        allowFromInactiveWorkspace: true,
++      });
++      if (!win || win.closed) {
++        return;
++      }
++
++      win.gNotificationBox.appendNotification(
++        "canadafox-update-available",
++        {
++          label: `CanadaFox ${latestVersion} is available (you're on ${Services.appinfo.version}).`,
++          priority: win.gNotificationBox.PRIORITY_INFO_MEDIUM,
++        },
++        [
++          {
++            label: "Download",
++            accessKey: "D",
++            callback() {
++              win.openTrustedLinkIn(html_url, "tab");
++            },
++          },
++        ]
++      );
++    } catch (ex) {
++      console.error("CanadaFox update check failed:", ex);
++    }
++  },
++
+   _maybeOfferProfileReset() {
+     // Offer to reset a user's profile if it hasn't been used for 60 days.
+     const OFFER_PROFILE_RESET_INTERVAL_MS = 60 * 24 * 60 * 60 * 1000;
