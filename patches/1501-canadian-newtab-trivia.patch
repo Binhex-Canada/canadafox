@@ -1,25 +1,170 @@
 diff --git a/browser/modules/AboutNewTab.sys.mjs b/browser/modules/AboutNewTab.sys.mjs
-index 4d6b04e72b..a25bc2719c 100644
+index 4d6b04e72b..08ea2aeb4d 100644
 --- a/browser/modules/AboutNewTab.sys.mjs
 +++ b/browser/modules/AboutNewTab.sys.mjs
-@@ -19,6 +19,11 @@ ChromeUtils.defineESModuleGetters(lazy, {
+@@ -19,6 +19,12 @@ ChromeUtils.defineESModuleGetters(lazy, {
  });
  
  const ABOUT_URL = "about:newtab";
 +// CanadaFox: every new tab shows a self-contained page (no network request)
 +// that rotates through Canadian trivia, or an "on this day" fact when
-+// today's date matches one. See patches/1501-canadian-newtab-trivia.patch.
-+const CANADAFOX_NEW_TAB_URL =
-+  "data:text/html;base64,PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4KPHRpdGxlPk5ldyBUYWI8L3RpdGxlPgo8c3R5bGU+CiAgaHRtbCwgYm9keSB7CiAgICBtYXJnaW46IDA7CiAgICBoZWlnaHQ6IDEwMCU7CiAgICBiYWNrZ3JvdW5kOiAjMTMwODI5OwogICAgY29sb3I6ICNmZmY7CiAgICBmb250LWZhbWlseTogLWFwcGxlLXN5c3RlbSwgIkhlbHZldGljYSBOZXVlIiwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgfQogIGJvZHkgewogICAgZGlzcGxheTogZmxleDsKICAgIGFsaWduLWl0ZW1zOiBjZW50ZXI7CiAgICBqdXN0aWZ5LWNvbnRlbnQ6IGNlbnRlcjsKICAgIHBhZGRpbmc6IDQwcHggMjRweDsKICAgIGJveC1zaXppbmc6IGJvcmRlci1ib3g7CiAgfQogIG1haW4gewogICAgbWF4LXdpZHRoOiA2NDBweDsKICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICB9CiAgaDEgewogICAgZm9udC1zaXplOiAyMHB4OwogICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgIGxldHRlci1zcGFjaW5nOiAwLjAyZW07CiAgICB0ZXh0LXRyYW5zZm9ybTogdXBwZXJjYXNlOwogICAgY29sb3I6ICNkNjQ1NTA7CiAgICBtYXJnaW46IDAgMCAyOHB4OwogIH0KICBwLmZhY3QgewogICAgbWFyZ2luOiAwOwogICAgZm9udC1zaXplOiAyNHB4OwogICAgbGluZS1oZWlnaHQ6IDEuNTsKICAgIGZvbnQtd2VpZ2h0OiA2MDA7CiAgfQogIHAubGFiZWwgewogICAgbWFyZ2luOiAyOHB4IDAgMDsKICAgIGZvbnQtc2l6ZTogMTVweDsKICAgIGxpbmUtaGVpZ2h0OiAxLjc7CiAgICBjb2xvcjogcmdiYSgyNTUsIDI1NSwgMjU1LCAwLjcpOwogIH0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KPG1haW4+CiAgPGgxPkNhbmFkYUZveDwvaDE+CiAgPHAgY2xhc3M9ImZhY3QiIGlkPSJmYWN0Ij48L3A+CiAgPHAgY2xhc3M9ImxhYmVsIiBpZD0ibGFiZWwiPjwvcD4KPC9tYWluPgo8c2NyaXB0PgogIHZhciBUUklWSUEgPSBbCiAgICAiQ2FuYWRhIGhhcyB0aGUgbG9uZ2VzdCBjb2FzdGxpbmUgb2YgYW55IGNvdW50cnkgb24gRWFydGgsIHRvdWNoaW5nIHRoZSBBdGxhbnRpYywgUGFjaWZpYywgYW5kIEFyY3RpYyBvY2VhbnMuIiwKICAgICJUaGUgbmFtZSDigJxDYW5hZGHigJ0gbGlrZWx5IGNvbWVzIGZyb20gdGhlIEh1cm9uLUlyb3F1b2lzIHdvcmQg4oCca2FuYXRhLOKAnSBtZWFuaW5nIOKAnHZpbGxhZ2XigJ0gb3Ig4oCcc2V0dGxlbWVudC7igJ0iLAogICAgIkNhbmFkYSBpcyB0aGUgc2Vjb25kLWxhcmdlc3QgY291bnRyeSBpbiB0aGUgd29ybGQgYnkgYXJlYSwgYWZ0ZXIgUnVzc2lhLiIsCiAgICAiQmFza2V0YmFsbCB3YXMgaW52ZW50ZWQgaW4gMTg5MSBieSBDYW5hZGlhbiBwaHlzaWNhbCBlZHVjYXRpb24gdGVhY2hlciBKYW1lcyBOYWlzbWl0aC4iLAogICAgIkluc3VsaW4gd2FzIGRpc2NvdmVyZWQgaW4gMTkyMSBieSBDYW5hZGlhbnMgRnJlZGVyaWNrIEJhbnRpbmcgYW5kIENoYXJsZXMgQmVzdCBhdCB0aGUgVW5pdmVyc2l0eSBvZiBUb3JvbnRvLiIsCiAgICAiQ2FuYWRhIGhhcyBtb3JlIGxha2VzIHRoYW4gdGhlIHJlc3Qgb2YgdGhlIHdvcmxkJ3MgY291bnRyaWVzIGNvbWJpbmVkLiIsCiAgICAiQ2FuYWRpYW4gYmFua25vdGVzIGFyZSBtYWRlIG9mIHBvbHltZXIsIG5vdCBwYXBlciwgbWFraW5nIHRoZW0gaGFyZGVyIHRvIGNvdW50ZXJmZWl0IGFuZCBtb3JlIGR1cmFibGUuIiwKICAgICJUaGUgQ2FuYWRhcm0sIGEgcm9ib3RpYyBhcm0gYnVpbHQgaW4gQ2FuYWRhLCBoYXMgZmxvd24gb24gTkFTQSBTcGFjZSBTaHV0dGxlIG1pc3Npb25zIGFuZCB0aGUgSW50ZXJuYXRpb25hbCBTcGFjZSBTdGF0aW9uLiIsCiAgICAiQ2FuYWRhIGlzIHRoZSB3b3JsZCdzIGxhcmdlc3QgcHJvZHVjZXIgb2YgbWFwbGUgc3lydXAsIHN1cHBseWluZyBhYm91dCA3MCUgb2YgdGhlIGdsb2JhbCBtYXJrZXQuIiwKICAgICJRdWViZWMgQ2l0eSBpcyB0aGUgb25seSB3YWxsZWQgY2l0eSBpbiBOb3J0aCBBbWVyaWNhIG5vcnRoIG9mIE1leGljby4iLAogICAgIkNhbmFkYSdzIG1vdHRvLCDigJxBIE1hcmkgVXNxdWUgQWQgTWFyZSzigJ0gaXMgTGF0aW4gZm9yIOKAnEZyb20gU2VhIHRvIFNlYS7igJ0iLAogICAgIlRoZSAkMSBhbmQgJDIgY29pbnMgYXJlIG5pY2tuYW1lZCB0aGUg4oCcbG9vbmll4oCdIGFuZCDigJx0b29uaWUs4oCdIGFmdGVyIHRoZSBsb29uIG9uIHRoZSBkb2xsYXIgY29pbi4iLAogICAgIk51bmF2dXQgYmVjYW1lIENhbmFkYSdzIG5ld2VzdCB0ZXJyaXRvcnkgaW4gMTk5OS4iLAogICAgIkNhbmFkYSBoYXMgdGVuIHByb3ZpbmNlcyBhbmQgdGhyZWUgdGVycml0b3JpZXMuIiwKICAgICJUb3JvbnRvJ3MgQ04gVG93ZXIgd2FzIHRoZSB3b3JsZCdzIHRhbGxlc3QgZnJlZS1zdGFuZGluZyBzdHJ1Y3R1cmUgZm9yIG1vcmUgdGhhbiAzMCB5ZWFycyBhZnRlciBvcGVuaW5nIGluIDE5NzYuIiwKICAgICJUaW0gSG9ydG9ucywgbm93IG9uZSBvZiBDYW5hZGEncyBiZXN0LWtub3duIGJyYW5kcywgb3BlbmVkIGl0cyBmaXJzdCBzaG9wIGluIEhhbWlsdG9uLCBPbnRhcmlvLCBpbiAxOTY0LiIsCiAgICAiV2F5bmUgR3JldHpreSBob2xkcyBtb3JlIE5ITCBzY29yaW5nIHJlY29yZHMgdGhhbiBhbnkgb3RoZXIgcGxheWVyIGluIGxlYWd1ZSBoaXN0b3J5LiIsCiAgICAiU25hZywgWXVrb24gcmVjb3JkZWQgTm9ydGggQW1lcmljYSdzIGNvbGRlc3QtZXZlciB0ZW1wZXJhdHVyZTogLTYzwrBDLCBvbiBGZWJydWFyeSAzLCAxOTQ3LiIsCiAgICAiTGFjcm9zc2UgYW5kIGljZSBob2NrZXkgYXJlIGJvdGgsIGJ5IGxhdywgcmVjb2duaXplZCBhcyBDYW5hZGEncyBuYXRpb25hbCBzcG9ydHMg4oCUIGxhY3Jvc3NlIGluIHN1bW1lciwgaG9ja2V5IGluIHdpbnRlci4iLAogICAgIlRoZSBUcmFucy1DYW5hZGEgSGlnaHdheSBzdHJldGNoZXMgcm91Z2hseSA4LDAwMCBrbSBjb2FzdCB0byBjb2FzdCwgb25lIG9mIHRoZSBsb25nZXN0IG5hdGlvbmFsIGhpZ2h3YXlzIG9uIEVhcnRoLiIsCiAgICAiQ2FuYWRhIFBvc3QgcG9zdGFsIGNvZGVzIGFsd2F5cyBhbHRlcm5hdGUgbGV0dGVycyBhbmQgbnVtYmVyczogbGV0dGVyLW51bWJlci1sZXR0ZXIsIG51bWJlci1sZXR0ZXItbnVtYmVyLiIsCiAgICAiVGhlIFJDTVAncyByZWQtc2VyZ2UgZHJlc3MgdW5pZm9ybSBpcyBvbmUgb2YgdGhlIG1vc3QgcmVjb2duaXplZCBuYXRpb25hbCBzeW1ib2xzIGluIHRoZSB3b3JsZC4iLAogICAgIkNhbmFkYSBoYXMgdHdvIG9mZmljaWFsIGxhbmd1YWdlcywgRW5nbGlzaCBhbmQgRnJlbmNoLCBlbnNocmluZWQgc2luY2UgMTk2OS4iLAogICAgIk5pYWdhcmEgRmFsbHMsIGFtb25nIHRoZSBtb3N0IHZpc2l0ZWQgbmF0dXJhbCB3b25kZXJzIG9uIEVhcnRoLCBzaXRzIHBhcnRseSBpbiBPbnRhcmlvLiIsCiAgICAiVGhlIENhbmFkaWFuIFBhY2lmaWMgUmFpbHdheSwgY29tcGxldGVkIGluIDE4ODUsIHdhcyB0aGUgZmlyc3QgdHJhbnNjb250aW5lbnRhbCByYWlsd2F5IHRvIGxpbmsgQ2FuYWRhIGNvYXN0IHRvIGNvYXN0LiIKICBdOwoKICB2YXIgT05fVEhJU19EQVkgPSB7CiAgICAiMDctMDEiOiBbCiAgICAgICJPbiBKdWx5IDEsIDE4NjcsIHRoZSBCcml0aXNoIE5vcnRoIEFtZXJpY2EgQWN0IHVuaXRlZCBPbnRhcmlvLCBRdWViZWMsIE5vdmEgU2NvdGlhLCBhbmQgTmV3IEJydW5zd2ljayBpbnRvIHRoZSBEb21pbmlvbiBvZiBDYW5hZGEg4oCUIENvbmZlZGVyYXRpb24uIiwKICAgICAgIk9uIEp1bHkgMSwgMTg3MywgUHJpbmNlIEVkd2FyZCBJc2xhbmQgam9pbmVkIENvbmZlZGVyYXRpb24gYXMgQ2FuYWRhJ3Mgc2V2ZW50aCBwcm92aW5jZS4iCiAgICBdLAogICAgIjAyLTE1IjogWyJPbiBGZWJydWFyeSAxNSwgMTk2NSwgQ2FuYWRhJ3MgY3VycmVudCByZWQtYW5kLXdoaXRlIG1hcGxlIGxlYWYgZmxhZyBmbGV3IGZvciB0aGUgZmlyc3QgdGltZSDigJQgbm93IG1hcmtlZCBlYWNoIHllYXIgYXMgTmF0aW9uYWwgRmxhZyBvZiBDYW5hZGEgRGF5LiJdLAogICAgIjA0LTE3IjogWyJPbiBBcHJpbCAxNywgMTk4MiwgdGhlIENhbmFkaWFuIENoYXJ0ZXIgb2YgUmlnaHRzIGFuZCBGcmVlZG9tcyB3YXMgcHJvY2xhaW1lZCwgcGF0cmlhdGluZyBDYW5hZGEncyBjb25zdGl0dXRpb24gZnJvbSB0aGUgVW5pdGVkIEtpbmdkb20uIl0sCiAgICAiMDMtMzEiOiBbIk9uIE1hcmNoIDMxLCAxOTQ5LCBOZXdmb3VuZGxhbmQgam9pbmVkIENvbmZlZGVyYXRpb24gYXMgQ2FuYWRhJ3MgdGVudGggcHJvdmluY2UuIl0sCiAgICAiMDktMDEiOiBbIk9uIFNlcHRlbWJlciAxLCAxOTA1LCBBbGJlcnRhIGFuZCBTYXNrYXRjaGV3YW4gYm90aCBiZWNhbWUgcHJvdmluY2VzIG9uIHRoZSB2ZXJ5IHNhbWUgZGF5LiJdLAogICAgIjA3LTE1IjogWyJPbiBKdWx5IDE1LCAxODcwLCBNYW5pdG9iYSBqb2luZWQgQ29uZmVkZXJhdGlvbiBhcyBDYW5hZGEncyBmaWZ0aCBwcm92aW5jZS4iXSwKICAgICIwNy0yMCI6IFsiT24gSnVseSAyMCwgMTg3MSwgQnJpdGlzaCBDb2x1bWJpYSBqb2luZWQgQ29uZmVkZXJhdGlvbiwgb24gdGhlIHByb21pc2Ugb2YgYSB0cmFuc2NvbnRpbmVudGFsIHJhaWx3YXkuIl0sCiAgICAiMTEtMDciOiBbIk9uIE5vdmVtYmVyIDcsIDE4ODUsIHRoZSDigJxMYXN0IFNwaWtl4oCdIHdhcyBkcml2ZW4gYXQgQ3JhaWdlbGxhY2hpZSwgQkMsIGNvbXBsZXRpbmcgdGhlIENhbmFkaWFuIFBhY2lmaWMgUmFpbHdheS4iXSwKICAgICIwNi0yMSI6IFsiSnVuZSAyMSBpcyBOYXRpb25hbCBJbmRpZ2Vub3VzIFBlb3BsZXMgRGF5IGluIENhbmFkYSwgbWFya2VkIHNpbmNlIDE5OTYgdG8gaG9ub3VyIEZpcnN0IE5hdGlvbnMsIEludWl0LCBhbmQgTcOpdGlzIGN1bHR1cmVzIGFuZCBoZXJpdGFnZS4iXSwKICAgICIxMC0xNCI6IFsiT24gT2N0b2JlciAxNCwgMTkwNCwgUHJpbWUgTWluaXN0ZXIgU2lyIFdpbGZyaWQgTGF1cmllciB0b2xkIGEgVG9yb250byBjcm93ZCB0aGUgMjB0aCBjZW50dXJ5IHdvdWxkIGJlbG9uZyB0byBDYW5hZGEg4oCUIHRoZSBzYW1lIHNwZWVjaCBxdW90ZWQgb24gQ2FuYWRhRm94J3MgZmlyc3QtcnVuIHBhZ2UuIl0KICB9OwoKICBmdW5jdGlvbiBwYWQobikgeyByZXR1cm4gbiA8IDEwID8gIjAiICsgbiA6ICIiICsgbjsgfQogIGZ1bmN0aW9uIGRheU9mWWVhcihkKSB7CiAgICB2YXIgc3RhcnQgPSBuZXcgRGF0ZShkLmdldEZ1bGxZZWFyKCksIDAsIDApOwogICAgcmV0dXJuIE1hdGguZmxvb3IoKGQgLSBzdGFydCkgLyA4NjQwMDAwMCk7CiAgfQoKICB2YXIgbm93ID0gbmV3IERhdGUoKTsKICB2YXIga2V5ID0gcGFkKG5vdy5nZXRNb250aCgpICsgMSkgKyAiLSIgKyBwYWQobm93LmdldERhdGUoKSk7CiAgdmFyIGRveSA9IGRheU9mWWVhcihub3cpOwogIHZhciBvblRoaXNEYXkgPSBPTl9USElTX0RBWVtrZXldOwogIHZhciBmYWN0LCBsYWJlbDsKICBpZiAob25UaGlzRGF5ICYmIG9uVGhpc0RheS5sZW5ndGgpIHsKICAgIGZhY3QgPSBvblRoaXNEYXlbZG95ICUgb25UaGlzRGF5Lmxlbmd0aF07CiAgICBsYWJlbCA9ICJPbiB0aGlzIGRheSBpbiBDYW5hZGlhbiBoaXN0b3J5IjsKICB9IGVsc2UgewogICAgZmFjdCA9IFRSSVZJQVtkb3kgJSBUUklWSUEubGVuZ3RoXTsKICAgIGxhYmVsID0gIkRpZCB5b3Uga25vdz8iOwogIH0KCiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImZhY3QiKS50ZXh0Q29udGVudCA9IGZhY3Q7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxhYmVsIikudGV4dENvbnRlbnQgPSBsYWJlbDsKPC9zY3JpcHQ+CjwvYm9keT4KPC9odG1sPgo=";
++// today's date matches one. Registered as a real about: page (see
++// AboutRedirector.cpp) rather than a data: URI, since data: URIs get a
++// null principal and always show in full in the address bar.
++const CANADAFOX_NEW_TAB_URL = "about:canadafoxnewtab";
  const PREF_ACTIVITY_STREAM_DEBUG = "browser.newtabpage.activity-stream.debug";
  // AboutHomeStartupCache needs us in "quit-application", so stay alive longer.
  // TODO: We could better have a shared async shutdown blocker?
-@@ -44,7 +49,7 @@ export const AboutNewTab = {
+@@ -44,8 +50,11 @@ export const AboutNewTab = {
  
    _cachedTopSites: null,
  
 -  _newTabURL: ABOUT_URL,
+-  _newTabURLOverridden: false,
++  // CanadaFox: seed both fields (not just the default URL) so init()'s
++  // toggleActivityStream(true) call doesn't stomp this back to ABOUT_URL --
++  // it only resets _newTabURL when _newTabURLOverridden is still false.
 +  _newTabURL: CANADAFOX_NEW_TAB_URL,
-   _newTabURLOverridden: false,
++  _newTabURLOverridden: true,
  
    /**
+    * init - Initializes an instance of Activity Stream if one doesn't exist already.
+diff --git a/browser/branding/unofficial/content/canada-newtab.html b/browser/branding/unofficial/content/canada-newtab.html
+new file mode 100644
+index 0000000000..0a15512b52
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-newtab.html
+@@ -0,0 +1,124 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<!DOCTYPE html>
++<html lang="en">
++<head>
++<meta charset="utf-8">
++<title>New Tab</title>
++<style>
++  html, body {
++    margin: 0;
++    height: 100%;
++    background: #130829;
++    color: #fff;
++    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
++  }
++  body {
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    padding: 40px 24px;
++    box-sizing: border-box;
++  }
++  main {
++    max-width: 640px;
++    text-align: center;
++  }
++  h1 {
++    font-size: 20px;
++    font-weight: 700;
++    letter-spacing: 0.02em;
++    text-transform: uppercase;
++    color: #d64550;
++    margin: 0 0 28px;
++  }
++  p.fact {
++    margin: 0;
++    font-size: 24px;
++    line-height: 1.5;
++    font-weight: 600;
++  }
++  p.label {
++    margin: 28px 0 0;
++    font-size: 15px;
++    line-height: 1.7;
++    color: rgba(255, 255, 255, 0.7);
++  }
++</style>
++</head>
++<body>
++<main>
++  <h1>CanadaFox</h1>
++  <p class="fact" id="fact"></p>
++  <p class="label" id="label"></p>
++</main>
++<script>
++  var TRIVIA = [
++    "Canada has the longest coastline of any country on Earth, touching the Atlantic, Pacific, and Arctic oceans.",
++    "The name “Canada” likely comes from the Huron-Iroquois word “kanata,” meaning “village” or “settlement.”",
++    "Canada is the second-largest country in the world by area, after Russia.",
++    "Basketball was invented in 1891 by Canadian physical education teacher James Naismith.",
++    "Insulin was discovered in 1921 by Canadians Frederick Banting and Charles Best at the University of Toronto.",
++    "Canada has more lakes than the rest of the world's countries combined.",
++    "Canadian banknotes are made of polymer, not paper, making them harder to counterfeit and more durable.",
++    "The Canadarm, a robotic arm built in Canada, has flown on NASA Space Shuttle missions and the International Space Station.",
++    "Canada is the world's largest producer of maple syrup, supplying about 70% of the global market.",
++    "Quebec City is the only walled city in North America north of Mexico.",
++    "Canada's motto, “A Mari Usque Ad Mare,” is Latin for “From Sea to Sea.”",
++    "The $1 and $2 coins are nicknamed the “loonie” and “toonie,” after the loon on the dollar coin.",
++    "Nunavut became Canada's newest territory in 1999.",
++    "Canada has ten provinces and three territories.",
++    "Toronto's CN Tower was the world's tallest free-standing structure for more than 30 years after opening in 1976.",
++    "Tim Hortons, now one of Canada's best-known brands, opened its first shop in Hamilton, Ontario, in 1964.",
++    "Wayne Gretzky holds more NHL scoring records than any other player in league history.",
++    "Snag, Yukon recorded North America's coldest-ever temperature: -63°C, on February 3, 1947.",
++    "Lacrosse and ice hockey are both, by law, recognized as Canada's national sports — lacrosse in summer, hockey in winter.",
++    "The Trans-Canada Highway stretches roughly 8,000 km coast to coast, one of the longest national highways on Earth.",
++    "Canada Post postal codes always alternate letters and numbers: letter-number-letter, number-letter-number.",
++    "The RCMP's red-serge dress uniform is one of the most recognized national symbols in the world.",
++    "Canada has two official languages, English and French, enshrined since 1969.",
++    "Niagara Falls, among the most visited natural wonders on Earth, sits partly in Ontario.",
++    "The Canadian Pacific Railway, completed in 1885, was the first transcontinental railway to link Canada coast to coast."
++  ];
++
++  var ON_THIS_DAY = {
++    "07-01": [
++      "On July 1, 1867, the British North America Act united Ontario, Quebec, Nova Scotia, and New Brunswick into the Dominion of Canada — Confederation.",
++      "On July 1, 1873, Prince Edward Island joined Confederation as Canada's seventh province."
++    ],
++    "02-15": ["On February 15, 1965, Canada's current red-and-white maple leaf flag flew for the first time — now marked each year as National Flag of Canada Day."],
++    "04-17": ["On April 17, 1982, the Canadian Charter of Rights and Freedoms was proclaimed, patriating Canada's constitution from the United Kingdom."],
++    "03-31": ["On March 31, 1949, Newfoundland joined Confederation as Canada's tenth province."],
++    "09-01": ["On September 1, 1905, Alberta and Saskatchewan both became provinces on the very same day."],
++    "07-15": ["On July 15, 1870, Manitoba joined Confederation as Canada's fifth province."],
++    "07-20": ["On July 20, 1871, British Columbia joined Confederation, on the promise of a transcontinental railway."],
++    "11-07": ["On November 7, 1885, the “Last Spike” was driven at Craigellachie, BC, completing the Canadian Pacific Railway."],
++    "06-21": ["June 21 is National Indigenous Peoples Day in Canada, marked since 1996 to honour First Nations, Inuit, and Métis cultures and heritage."],
++    "10-14": ["On October 14, 1904, Prime Minister Sir Wilfrid Laurier told a Toronto crowd the 20th century would belong to Canada — the same speech quoted on CanadaFox's first-run page."]
++  };
++
++  function pad(n) { return n < 10 ? "0" + n : "" + n; }
++  function dayOfYear(d) {
++    var start = new Date(d.getFullYear(), 0, 0);
++    return Math.floor((d - start) / 86400000);
++  }
++
++  var now = new Date();
++  var key = pad(now.getMonth() + 1) + "-" + pad(now.getDate());
++  var doy = dayOfYear(now);
++  var onThisDay = ON_THIS_DAY[key];
++  var fact, label;
++  if (onThisDay && onThisDay.length) {
++    fact = onThisDay[doy % onThisDay.length];
++    label = "On this day in Canadian history";
++  } else {
++    fact = TRIVIA[doy % TRIVIA.length];
++    label = "Did you know?";
++  }
++
++  document.getElementById("fact").textContent = fact;
++  document.getElementById("label").textContent = label;
++</script>
++</body>
++</html>
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 8aea4b101d..401bac37f9 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -22,3 +22,4 @@ browser.jar:
+   content/branding/aboutDialog.css
+   content/branding/canada-flag.svg
+   content/branding/canada-flag-color.svg
++  content/branding/canada-newtab.html

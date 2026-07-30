@@ -1,0 +1,29 @@
+diff --git a/browser/base/content/aboutDialog.js b/browser/base/content/aboutDialog.js
+index ba43e00cbd..8d36666004 100644
+--- a/browser/base/content/aboutDialog.js
++++ b/browser/base/content/aboutDialog.js
+@@ -35,18 +35,12 @@ function init() {
+       distroField.value = distroAbout;
+       distroField.style.display = "block";
+     }
+-    // If it's not a mozilla distribution, show the rest,
+-    // unless about text exists, then we always show.
+-    if (!distroId.startsWith("mozilla-") || distroAbout) {
+-      let distroVersion = defaults.getCharPref("distribution.version", "");
+-      if (distroVersion) {
+-        distroId += " - " + distroVersion;
+-      }
+-
+-      let distroIdField = document.getElementById("distributionId");
+-      distroIdField.value = distroId;
+-      distroIdField.style.display = "block";
+-    }
++    // CanadaFox: upstream also shows a raw "<id> - <version>" line here
++    // (e.g. "canadafox - 1.0") whenever distribution.ini is present, which
++    // we now ship for the pre-loaded bookmarks folder. That string is an
++    // internal distribution identifier, not something worth surfacing to
++    // users, so it's intentionally not shown -- the "about" text above is
++    // the only distribution-related line in this dialog.
+   }
+ 
+   // Include the build ID and display warning if this is an "a#" (nightly or aurora) build

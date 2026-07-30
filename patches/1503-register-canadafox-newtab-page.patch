@@ -1,0 +1,31 @@
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+index 0d2deeb019..ba11669028 100644
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -64,6 +64,14 @@ static const RedirEntry kRedirMap[] = {
+      nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+          nsIAboutModule::HIDE_FROM_ABOUTABOUT},
++    // CanadaFox: registered as a real about: page (rather than a data: URI)
++    // so it gets the same "hidden URL in the address bar" treatment as
++    // about:newtab/about:home -- data: URIs get a null principal, which
++    // fails the urlbar's checkEmptyPageOrigin() content-principal check.
++    {"canadafoxnewtab", "chrome://branding/content/canada-newtab.html",
++     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
++         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
++         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+     {"unloads", "chrome://browser/content/tabunloader/aboutUnloads.html",
+      nsIAboutModule::ALLOW_SCRIPT},
+     {"framecrashed", "chrome://browser/content/aboutFrameCrashed.html",
+diff --git a/browser/components/about/components.conf b/browser/components/about/components.conf
+index 35b5921f6e..60bb32caa0 100644
+--- a/browser/components/about/components.conf
++++ b/browser/components/about/components.conf
+@@ -6,6 +6,7 @@ pages = [
+     'aichatcontent',
+     'asrouter',
+     'blocked',
++    'canadafoxnewtab',
+     'certerror',
+     'downloads',
+     'framecrashed',
