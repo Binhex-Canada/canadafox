@@ -62,6 +62,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   overriding `AboutNewTab` tore down Activity Stream, which
   `AboutHomeStartupCache` then dereferenced unconditionally.
 
+### Added (cont.)
+- A **Sovereign Privacy** toggle in Settings → CanadaFox, so CIRA Canadian
+  Shield DNS can be turned off without needing to know it's implemented as an
+  enterprise policy. On is the shipped default; off reverts to plain system
+  DNS, not a different DoH provider. Takes effect immediately, no restart.
+
 ### Internal
 - Rebased onto Firefox Nightly `878b64a4c024` (2026-07-30), 769 commits newer
   than the previous base. All patches applied without conflict.

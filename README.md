@@ -87,8 +87,10 @@ Note: DNS-over-HTTPS is pointed at
 tier), run by the non-profit that operates the `.ca` registry, so DNS
 lookups stay on Canadian infrastructure and known malware/phishing domains
 are blocked at the DNS layer. Firefox falls back to the system resolver if
-it can't be reached, so captive portals still work, and the setting is left
-unlocked so you can change it in Settings.
+it can't be reached, so captive portals still work. A "Sovereign Privacy"
+checkbox in Settings → CanadaFox turns it off (reverting to plain system
+DNS) without needing to know it's implemented as a policy; it applies
+immediately, no restart.
 
 Note: the site-information panel (click the padlock) shows which country
 answered the connection, e.g. *Served from Canada*. The lookup is entirely

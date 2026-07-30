@@ -1,0 +1,134 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 955ddde413..9d70c1841a 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -401,6 +401,8 @@ BrowserGlue.prototype = {
+     // apply distribution customizations
+     lazy.DistributionManagement.applyCustomizations();
+ 
++    this._initCiraDnsToggle();
++
+     // handle any UI migration
+     this._migrateUI();
+ 
+@@ -420,6 +422,33 @@ BrowserGlue.prototype = {
+     Services.obs.notifyObservers(null, "browser-ui-startup-complete");
+   },
+ 
++  // CanadaFox: "Sovereign Privacy" toggle for CIRA Canadian Shield DNS.
++  // policies.json sets the *default* branch (network.trr.mode/uri), which
++  // is what a fresh profile gets; this maps our own boolean pref onto the
++  // *user* branch so it can be flipped from Settings without a restart,
++  // and reapplies live so toggling takes effect immediately.
++  PREF_CIRA_DNS_ENABLED: "canadafox.dns.ciraEnabled",
++  CIRA_DNS_URI: "https://protected.canadianshield.cira.ca/dns-query",
++
++  _initCiraDnsToggle() {
++    this._applyCiraDnsSetting();
++    Services.prefs.addObserver(this.PREF_CIRA_DNS_ENABLED, () =>
++      this._applyCiraDnsSetting()
++    );
++  },
++
++  _applyCiraDnsSetting() {
++    if (Services.prefs.getBoolPref(this.PREF_CIRA_DNS_ENABLED, true)) {
++      Services.prefs.setIntPref("network.trr.mode", 2);
++      Services.prefs.setStringPref("network.trr.uri", this.CIRA_DNS_URI);
++    } else {
++      // Mode 0: native OS DNS only, same as a stock Firefox profile that
++      // has never had DoH configured. Not "fall back to a different DoH
++      // provider" -- this toggle is specifically about CIRA.
++      Services.prefs.setIntPref("network.trr.mode", 0);
++    }
++  },
++
+   _checkForOldBuildUpdates() {
+     // check for update if our build is old
+     if (
+diff --git a/browser/branding/unofficial/pref/firefox-branding.js b/browser/branding/unofficial/pref/firefox-branding.js
+index f5f760879f..87b4fa0ed8 100644
+--- a/browser/branding/unofficial/pref/firefox-branding.js
++++ b/browser/branding/unofficial/pref/firefox-branding.js
+@@ -15,6 +15,12 @@ pref("startup.homepage_welcome_url.additional", "");
+ // BrowserGlue and leave a duplicate tab.
+ pref("canadafox.welcomeTab.url", "about:canadafoxwelcome");
+ 
++// CanadaFox: "Sovereign Privacy" toggle (Settings -> CanadaFox), applied by
++// BrowserGlue._applyCiraDnsSetting. Not the same thing as the DNSOverHTTPS
++// enterprise policy in distribution/policies.json, which sets the default
++// this pref's ON state matches -- this is what lets a user turn it off.
++pref("canadafox.dns.ciraEnabled", true);
++
+ // CanadaFox: about:home's startup cache assumes Activity Stream has been
+ // constructed, but pointing new tabs at about:canadafoxnewtab (see
+ // utilityOverlay.js) means nothing triggers that construction, so the cache
+diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
+index 0555035cfb..03aa8d0b68 100644
+--- a/browser/components/preferences/config/canadafox.mjs
++++ b/browser/components/preferences/config/canadafox.mjs
+@@ -8,6 +8,11 @@ import { SettingGroupManager } from "chrome://browser/content/preferences/config
+ Preferences.addSetting({ id: "canadafoxIntroText" });
+ Preferences.addSetting({ id: "canadafoxAddonsInfo" });
+ Preferences.addSetting({ id: "canadafoxAddonsLink" });
++Preferences.add({ id: "canadafox.dns.ciraEnabled", type: "bool" });
++Preferences.addSetting({
++  id: "canadafoxCiraDns",
++  pref: "canadafox.dns.ciraEnabled",
++});
+ 
+ // The settings referenced below (e.g. "lockPinnedTabs") are registered by
+ // their own feature's config module (tabs-browsing.mjs); this page just
+@@ -38,6 +43,16 @@ SettingGroupManager.registerGroups({
+       },
+     ],
+   },
++  canadafoxPrivacy: {
++    l10nId: "canadafox-settings-privacy-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "canadafoxCiraDns",
++        l10nId: "canadafox-cira-dns",
++      },
++    ],
++  },
+   canadafoxAddons: {
+     l10nId: "canadafox-settings-addons-group",
+     headingLevel: 2,
+diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
+index 9415fc5e36..0543ca19a5 100644
+--- a/browser/locales/en-US/browser/preferences/preferences.ftl
++++ b/browser/locales/en-US/browser/preferences/preferences.ftl
+@@ -2759,6 +2759,14 @@ canadafox-settings-intro =
+ canadafox-settings-tabs-group =
+     .label = Tabs
+ 
++canadafox-settings-privacy-group =
++    .label = Privacy
++
++canadafox-cira-dns =
++    .label = Use CIRA Canadian Shield for DNS (sovereign, privacy-focused Canadian DNS)
++    .accesskey = D
++    .description = CanadaFox-specific setting, not present in stock Firefox. Turning this off falls back to your system's regular DNS.
++
+ canadafox-settings-addons-group =
+     .label = Pre-installed extensions
+ 
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index 96d60f21a3..396c4f5d67 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -487,7 +487,12 @@ const CONFIG_PANES = Object.freeze({
+   // this page doesn't move anything, just cross-references it.
+   canadafox: {
+     l10nId: "canadafox-settings-header",
+-    groupIds: ["canadafoxIntro", "canadafoxTabs", "canadafoxAddons"],
++    groupIds: [
++      "canadafoxIntro",
++      "canadafoxTabs",
++      "canadafoxPrivacy",
++      "canadafoxAddons",
++    ],
+     iconSrc: "chrome://branding/content/canada-flag.svg",
+     module: "chrome://browser/content/preferences/config/canadafox.mjs",
+     visible: () => srdSectionPrefs.all,
