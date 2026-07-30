@@ -1,9 +1,9 @@
 diff --git a/browser/modules/CanadaFoxGeoIP.sys.mjs b/browser/modules/CanadaFoxGeoIP.sys.mjs
 new file mode 100644
-index 0000000000..70e4e36416
+index 0000000000..1ba586202b
 --- /dev/null
 +++ b/browser/modules/CanadaFoxGeoIP.sys.mjs
-@@ -0,0 +1,170 @@
+@@ -0,0 +1,190 @@
 +/* This Source Code Form is subject to the terms of the Mozilla Public
 + * License, v. 2.0. If a copy of the MPL was not distributed with this
 + * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -27,6 +27,26 @@ index 0000000000..70e4e36416
 +export const CanadaFoxGeoIP = {
 +  _db: null,
 +  _loading: null,
++
++  /**
++   * Results are keyed by BrowsingContext rather than by the <browser>
++   * element: a navigation that changes process (notably going from
++   * about:canadafoxnewtab to a web page, i.e. opening a new tab and typing
++   * an address) hands the observer a different element than the one the
++   * panel later reads, so a per-element property silently went missing.
++   * The BrowsingContext survives those switches.
++   */
++  _byContext: new WeakMap(),
++
++  setCountryForContext(browsingContext, code) {
++    if (browsingContext) {
++      this._byContext.set(browsingContext, code);
++    }
++  },
++
++  getCountryForContext(browsingContext) {
++    return browsingContext ? this._byContext.get(browsingContext) ?? null : null;
++  },
 +
 +  async _load() {
 +    let buffer = await (await fetch(DB_URL)).arrayBuffer();
@@ -187,7 +207,7 @@ index f25d62e835..219df0dbe7 100644
      "Dedupe.sys.mjs",
      "Discovery.sys.mjs",
 diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
-index 6f7c9896f6..7c4276489e 100644
+index 6740b47714..8a49a0d174 100644
 --- a/browser/base/content/browser.js
 +++ b/browser/base/content/browser.js
 @@ -17,6 +17,7 @@ ChromeUtils.defineESModuleGetters(this, {
@@ -198,7 +218,7 @@ index 6f7c9896f6..7c4276489e 100644
    ActionsProviderContextualSearch:
      "moz-src:///browser/components/urlbar/ActionsProviderContextualSearch.sys.mjs",
    AddonManager: "resource://gre/modules/AddonManager.sys.mjs",
-@@ -5263,3 +5264,53 @@
+@@ -5173,3 +5174,52 @@ var FirefoxViewHandler = {
      }
    },
  };
@@ -230,11 +250,10 @@ index 6f7c9896f6..7c4276489e 100644
 +    if (!browsingContext || browsingContext.parent) {
 +      return;
 +    }
-+    let browser = browsingContext.embedderElement;
-+    // topChromeWindow, not browser.ownerGlobal: the element handed to an
-+    // observer does not expose ownerGlobal, so comparing it silently
++    // topChromeWindow, not embedderElement.ownerGlobal: the element handed to
++    // an observer does not expose ownerGlobal, so comparing it silently
 +    // rejected every load.
-+    if (!browser || browsingContext.topChromeWindow != window) {
++    if (browsingContext.topChromeWindow != window) {
 +      return;
 +    }
 +
@@ -246,9 +265,9 @@ index 6f7c9896f6..7c4276489e 100644
 +      return;
 +    }
 +
-+    browser.canadafoxServedFromCountry = null;
++    CanadaFoxGeoIP.setCountryForContext(browsingContext, null);
 +    CanadaFoxGeoIP.lookup(address).then(code => {
-+      browser.canadafoxServedFromCountry = code;
++      CanadaFoxGeoIP.setCountryForContext(browsingContext, code);
 +    });
 +  },
 +};
@@ -266,10 +285,10 @@ index 2688f7d26b..1f9c34e55f 100644
        "PermissionStateChange",
        function () {
 diff --git a/browser/base/content/browser-siteIdentity.js b/browser/base/content/browser-siteIdentity.js
-index 16b222280f..a889ac72b0 100644
+index 16b222280f..e3def6f758 100644
 --- a/browser/base/content/browser-siteIdentity.js
 +++ b/browser/base/content/browser-siteIdentity.js
-@@ -1034,6 +1034,33 @@ var gIdentityHandler = {
+@@ -1034,6 +1034,35 @@ var gIdentityHandler = {
     * based on the specified mode, and the details of the SSL cert, where
     * applicable
     */
@@ -284,7 +303,9 @@ index 16b222280f..a889ac72b0 100644
 +    if (!row) {
 +      return;
 +    }
-+    let code = gBrowser.selectedBrowser?.canadafoxServedFromCountry;
++    let code = CanadaFoxGeoIP.getCountryForContext(
++      gBrowser.selectedBrowser?.browsingContext
++    );
 +    row.hidden = !code;
 +    if (!code) {
 +      return;
@@ -303,7 +324,7 @@ index 16b222280f..a889ac72b0 100644
    refreshIdentityPopup() {
      // Update cookies and site data information and show the
      // "Clear Site Data" button if the site is storing local data, and
-@@ -1055,6 +1082,8 @@ var gIdentityHandler = {
+@@ -1055,6 +1084,8 @@ var gIdentityHandler = {
        });
      }
  

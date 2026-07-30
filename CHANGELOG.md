@@ -63,6 +63,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `AboutHomeStartupCache` then dereferenced unconditionally.
 
 ### Internal
+- Rebased onto Firefox Nightly `878b64a4c024` (2026-07-30), 769 commits newer
+  than the previous base. All patches applied without conflict.
 - Builds go through `sccache`, so unchanged objects are reused between
   rebuilds instead of recompiled from scratch.
 
