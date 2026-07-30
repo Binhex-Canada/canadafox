@@ -3,7 +3,7 @@
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
 
-There is no point in using this software. Why would you use this? This was created during a fever dream. Hey,sd wasn't the movie Obession great?
+There is no point in using this software. Why would you use this? This was created during a fever dream. Hey, wasn't the movie Obession great? 
 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed release to release.
 
@@ -37,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 17 (see `patches/`) |
+| Patches applied | 19 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -69,3 +69,12 @@ itself through the normal AMO update mechanism like any extension you'd
 install yourself. CanadaFox doesn't own, modify, or sell it; see
 `vendor/extensions/README.md` for attribution and how to pull in updates.
 Users can disable or remove it like any other extension.
+
+Note: New Tab (not the Home button/startup page) shows a self-contained
+page with rotating Canadian trivia, or an "on this day in Canadian
+history" fact when today's date matches one, instead of the normal
+topsites/shortcuts grid.
+
+Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
+Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,
+which is shown by default.

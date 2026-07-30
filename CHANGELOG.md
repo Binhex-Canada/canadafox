@@ -3,6 +3,16 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- New Tab now shows a self-contained page (no network request) that rotates
+  through Canadian trivia, or an "on this day in Canadian history" fact when
+  today's date matches one — instead of the normal topsites/shortcuts grid.
+- A pre-loaded **Canadian Services** bookmarks folder (Canada Revenue Agency,
+  Service Canada, Canada.ca Health, CBC News), shown on the bookmarks
+  toolbar by default.
+
 ## [0.0.2] - 2026-07-28
 
 ### Added

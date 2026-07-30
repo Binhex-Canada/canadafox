@@ -1,0 +1,56 @@
+diff --git a/browser/app/distribution/distribution.ini b/browser/app/distribution/distribution.ini
+index 5c16c3bab1..0f0828af64 100644
+--- a/browser/app/distribution/distribution.ini
++++ b/browser/app/distribution/distribution.ini
+@@ -1,4 +1,29 @@
+ [Global]
+-id=mozilla-official
++id=canadafox
+ version=1.0
+-about=Mozilla Firefox Official Build
+\ No newline at end of file
++about=CanadaFox
++
++[Preferences]
++browser.showPersonalToolbar=true
++
++[BookmarksToolbar]
++item.1.type=folder
++item.1.title=Canadian Services
++item.1.folderId=1
++
++[BookmarksFolder-1]
++item.1.type=bookmark
++item.1.title=Canada Revenue Agency (CRA)
++item.1.link=https://www.canada.ca/en/revenue-agency.html
++
++item.2.type=bookmark
++item.2.title=Service Canada
++item.2.link=https://www.canada.ca/en/employment-social-development/corporate/portfolio/service-canada.html
++
++item.3.type=bookmark
++item.3.title=Canada.ca — Health
++item.3.link=https://www.canada.ca/en/services/health.html
++
++item.4.type=bookmark
++item.4.title=CBC News
++item.4.link=https://www.cbc.ca/news
+diff --git a/browser/app/distribution/moz.build b/browser/app/distribution/moz.build
+index 0a175ac0a4..17de64ce7f 100644
+--- a/browser/app/distribution/moz.build
++++ b/browser/app/distribution/moz.build
+@@ -17,6 +17,14 @@ FINAL_TARGET_FILES.distribution += [
+     "policies.json",
+ ]
+ 
++# CanadaFox: distribution.ini is normally only packaged for official
++# Mozilla builds (see the BUILT_BY_MOZILLA check above), but we use it to
++# seed a pre-loaded bookmarks folder of Canadian services, so ship it
++# unconditionally.
++FINAL_TARGET_FILES.distribution += [
++    "distribution.ini",
++]
++
+ # CanadaFox: pre-install uBlock Origin as a normal, unmodified, Mozilla-signed
+ # extension (vendored from addons.mozilla.org; see vendor/extensions/README.md
+ # in the canadafox repo for version/attribution/update details). It keeps its
