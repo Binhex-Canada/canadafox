@@ -18,10 +18,10 @@ index 9496c9b8d5..717cbb110b 100644
  pref("media.gmp-provider.enabled", true);
  
 diff --git a/browser/branding/unofficial/pref/firefox-branding.js b/browser/branding/unofficial/pref/firefox-branding.js
-index f22dd0a51c..47dbea38da 100644
+index f22dd0a51c..f5f760879f 100644
 --- a/browser/branding/unofficial/pref/firefox-branding.js
 +++ b/browser/branding/unofficial/pref/firefox-branding.js
-@@ -7,6 +7,21 @@
+@@ -7,6 +7,29 @@
  pref("startup.homepage_override_url", "");
  pref("startup.homepage_welcome_url", "");
  pref("startup.homepage_welcome_url.additional", "");
@@ -40,6 +40,14 @@ index f22dd0a51c..47dbea38da 100644
 +// only pre-renders about:home a little sooner, so turning it off is a
 +// straight trade of a marginal startup optimization for a clean startup.
 +pref("browser.startup.homepage.abouthome_cache.enabled", false);
++
++// CanadaFox: show the bookmarks toolbar by default, so the pre-loaded
++// Canadian Services folder is actually visible. Upstream defaults to
++// "newtab" (visible only on a new tab). Set as a default rather than
++// through distribution.ini's browser.showPersonalToolbar, which only
++// writes it on a profile's very first run and so misses existing ones.
++// Users can still change it from View > Toolbars as usual.
++pref("browser.toolbars.bookmarks.visibility", "always");
  // The time interval between checks for a new version (in seconds)
  pref("app.update.interval", 86400); // 24 hours
  // Give the user x seconds to react before showing the big UI. default=24 hours

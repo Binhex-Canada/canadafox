@@ -31,6 +31,10 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   raw base64 blob used to show in the address bar.
 - Removed the internal distribution identifier line (e.g. "canadafox - 1.0")
   from the About dialog.
+- The bookmarks toolbar is now shown by default via an actual default pref,
+  rather than through distribution.ini's `browser.showPersonalToolbar`, which
+  only writes the setting on a profile's very first run and so never reached
+  existing profiles. Changing it in View > Toolbars still sticks.
 
 ## [0.0.2] - 2026-07-28
 

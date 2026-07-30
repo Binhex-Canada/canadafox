@@ -1,8 +1,8 @@
 diff --git a/browser/app/distribution/distribution.ini b/browser/app/distribution/distribution.ini
-index 5c16c3bab1..0f0828af64 100644
+index 5c16c3bab1..05e6214b9b 100644
 --- a/browser/app/distribution/distribution.ini
 +++ b/browser/app/distribution/distribution.ini
-@@ -1,4 +1,29 @@
+@@ -1,4 +1,26 @@
  [Global]
 -id=mozilla-official
 +id=canadafox
@@ -10,9 +10,6 @@ index 5c16c3bab1..0f0828af64 100644
 -about=Mozilla Firefox Official Build
 \ No newline at end of file
 +about=CanadaFox
-+
-+[Preferences]
-+browser.showPersonalToolbar=true
 +
 +[BookmarksToolbar]
 +item.1.type=folder
