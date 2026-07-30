@@ -1,0 +1,16 @@
+diff --git a/browser/app/distribution/policies.json b/browser/app/distribution/policies.json
+index 213665010a..80a97bc10d 100644
+--- a/browser/app/distribution/policies.json
++++ b/browser/app/distribution/policies.json
+@@ -3,6 +3,11 @@
+     "SearchEngines": {
+       "Default": "DuckDuckGo"
+     },
++    "DNSOverHTTPS": {
++      "Enabled": true,
++      "ProviderURL": "https://protected.canadianshield.cira.ca/dns-query",
++      "Locked": false
++    },
+     "Preferences": {
+       "browser.ml.enable": { "Value": false, "Status": "locked" },
+       "browser.ml.chat.enabled": { "Value": false, "Status": "locked" },

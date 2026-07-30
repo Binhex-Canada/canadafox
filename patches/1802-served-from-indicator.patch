@@ -1,0 +1,353 @@
+diff --git a/browser/modules/CanadaFoxGeoIP.sys.mjs b/browser/modules/CanadaFoxGeoIP.sys.mjs
+new file mode 100644
+index 0000000000..70e4e36416
+--- /dev/null
++++ b/browser/modules/CanadaFoxGeoIP.sys.mjs
+@@ -0,0 +1,170 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++/**
++ * Looks up which country served the page, so the site-information panel can
++ * show a "Served from" line.
++ *
++ * This answers "which server replied", not "where does this company keep my
++ * data" -- a US site behind a CDN commonly answers from a Canadian edge node.
++ * The UI is worded accordingly.
++ *
++ * The database is DB-IP's IP-to-Country Lite, repacked into sorted range
++ * starts plus a country index (see vendor/geoip/README.md). It is loaded
++ * lazily on the first lookup and kept in memory afterwards.
++ */
++
++const DB_URL = "chrome://branding/content/dbip-country.bin";
++const MAGIC = "CFGEO1\0\0";
++
++export const CanadaFoxGeoIP = {
++  _db: null,
++  _loading: null,
++
++  async _load() {
++    let buffer = await (await fetch(DB_URL)).arrayBuffer();
++    let view = new DataView(buffer);
++
++    let magic = "";
++    for (let i = 0; i < MAGIC.length; i++) {
++      magic += String.fromCharCode(view.getUint8(i));
++    }
++    if (magic != MAGIC) {
++      throw new Error("Unrecognized geoip database format");
++    }
++
++    let offset = MAGIC.length;
++    let countryCount = view.getUint32(offset, true);
++    offset += 4;
++
++    let countries = [];
++    for (let i = 0; i < countryCount; i++) {
++      let code = String.fromCharCode(
++        view.getUint8(offset),
++        view.getUint8(offset + 1)
++      );
++      countries.push(code.replace("\0", ""));
++      offset += 2;
++    }
++    offset = (offset + 7) & ~7;
++
++    // slice() copies, which keeps the typed arrays aligned regardless of
++    // where the sections happen to land in the file.
++    let readSection = (count, bytesPer, Ctor) => {
++      let starts = new Ctor(buffer.slice(offset, offset + count * bytesPer));
++      offset += count * bytesPer;
++      let index = new Uint8Array(buffer.slice(offset, offset + count));
++      offset += count;
++      return { starts, index };
++    };
++
++    let v4Count = view.getUint32(offset, true);
++    offset += 8;
++    let v4 = readSection(v4Count, 4, Uint32Array);
++    offset = (offset + 7) & ~7;
++
++    let v6Count = view.getUint32(offset, true);
++    offset += 8;
++    let v6 = readSection(v6Count, 8, BigUint64Array);
++
++    this._db = { countries, v4, v6 };
++  },
++
++  /**
++   * @param {string} address A bare IPv4 or IPv6 address, as reported by
++   *   nsIHttpChannelInternal.remoteAddress.
++   * @returns {Promise<string|null>} An ISO 3166-1 alpha-2 country code, or
++   *   null if the address is unknown, private, or malformed.
++   */
++  async lookup(address) {
++    if (!address) {
++      return null;
++    }
++    if (!this._db) {
++      this._loading ??= this._load();
++      try {
++        await this._loading;
++      } catch (ex) {
++        console.error("CanadaFox: geoip database unavailable:", ex);
++        return null;
++      }
++    }
++
++    let key, section;
++    if (address.includes(":")) {
++      key = this._packIPv6(address);
++      section = this._db.v6;
++    } else {
++      key = this._packIPv4(address);
++      section = this._db.v4;
++    }
++    if (key === null) {
++      return null;
++    }
++
++    // Ranges are contiguous and sorted, so the match is the last range whose
++    // start is <= the address.
++    let lo = 0;
++    let hi = section.starts.length - 1;
++    let found = -1;
++    while (lo <= hi) {
++      let mid = (lo + hi) >> 1;
++      if (section.starts[mid] <= key) {
++        found = mid;
++        lo = mid + 1;
++      } else {
++        hi = mid - 1;
++      }
++    }
++    if (found < 0) {
++      return null;
++    }
++    let code = this._db.countries[section.index[found]];
++    // DB-IP uses ZZ for addresses it cannot place.
++    return code && code != "ZZ" ? code : null;
++  },
++
++  _packIPv4(address) {
++    let parts = address.split(".");
++    if (parts.length != 4) {
++      return null;
++    }
++    let value = 0;
++    for (let part of parts) {
++      let octet = Number(part);
++      if (!Number.isInteger(octet) || octet < 0 || octet > 255) {
++        return null;
++      }
++      value = value * 256 + octet;
++    }
++    return value;
++  },
++
++  _packIPv6(address) {
++    // Only the high 64 bits are needed: country allocations are never
++    // finer-grained than a /64.
++    let [head, tail = ""] = address.split("::");
++    let headGroups = head ? head.split(":") : [];
++    let tailGroups = tail ? tail.split(":") : [];
++    if (address.includes("::")) {
++      let missing = 8 - headGroups.length - tailGroups.length;
++      if (missing < 0) {
++        return null;
++      }
++      headGroups = headGroups.concat(Array(missing).fill("0"), tailGroups);
++    }
++    if (headGroups.length != 8) {
++      return null;
++    }
++    let value = 0n;
++    for (let i = 0; i < 4; i++) {
++      let group = parseInt(headGroups[i] || "0", 16);
++      if (!Number.isInteger(group) || group < 0 || group > 0xffff) {
++        return null;
++      }
++      value = (value << 16n) | BigInt(group);
++    }
++    return value;
++  },
++};
+diff --git a/browser/modules/moz.build b/browser/modules/moz.build
+index f25d62e835..219df0dbe7 100644
+--- a/browser/modules/moz.build
++++ b/browser/modules/moz.build
+@@ -117,6 +117,7 @@ EXTRA_JS_MODULES += [
+     "BrowserUIUtils.sys.mjs",
+     "BrowserUsageTelemetry.sys.mjs",
+     "BrowserWindowTracker.sys.mjs",
++    "CanadaFoxGeoIP.sys.mjs",
+     "ContentCrashHandlers.sys.mjs",
+     "Dedupe.sys.mjs",
+     "Discovery.sys.mjs",
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+index 6f7c9896f6..7c4276489e 100644
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -17,6 +17,7 @@ ChromeUtils.defineESModuleGetters(this, {
+   AMTelemetry: "resource://gre/modules/AddonManager.sys.mjs",
+   AboutNewTab: "resource:///modules/AboutNewTab.sys.mjs",
+   AboutReaderParent: "resource:///actors/AboutReaderParent.sys.mjs",
++  CanadaFoxGeoIP: "resource:///modules/CanadaFoxGeoIP.sys.mjs",
+   ActionsProviderContextualSearch:
+     "moz-src:///browser/components/urlbar/ActionsProviderContextualSearch.sys.mjs",
+   AddonManager: "resource://gre/modules/AddonManager.sys.mjs",
+@@ -5263,3 +5264,53 @@
+     }
+   },
+ };
++
++// CanadaFox: record which country answered each top-level page load, for the
++// "Served from" line in the site-information panel. Reads the remote address
++// off the document channel -- no extra network request, and the lookup runs
++// against a database bundled in the app, so producing it sends nothing about
++// browsing off the machine.
++var CanadaFoxServedFrom = {
++  init() {
++    Services.obs.addObserver(this, "http-on-examine-response");
++    window.addEventListener(
++      "unload",
++      () => Services.obs.removeObserver(this, "http-on-examine-response"),
++      { once: true }
++    );
++  },
++
++  observe(subject) {
++    let channel = subject.QueryInterface(Ci.nsIHttpChannel);
++    let loadInfo = channel.loadInfo;
++    if (loadInfo.externalContentPolicyType != Ci.nsIContentPolicy.TYPE_DOCUMENT) {
++      return;
++    }
++    // Top-level documents only; a subframe's host says nothing about the page
++    // the user thinks they are on.
++    let browsingContext = loadInfo.browsingContext;
++    if (!browsingContext || browsingContext.parent) {
++      return;
++    }
++    let browser = browsingContext.embedderElement;
++    // topChromeWindow, not browser.ownerGlobal: the element handed to an
++    // observer does not expose ownerGlobal, so comparing it silently
++    // rejected every load.
++    if (!browser || browsingContext.topChromeWindow != window) {
++      return;
++    }
++
++    let address;
++    try {
++      address = channel.QueryInterface(Ci.nsIHttpChannelInternal).remoteAddress;
++    } catch (ex) {
++      // Not every channel exposes one (cached or replayed responses).
++      return;
++    }
++
++    browser.canadafoxServedFromCountry = null;
++    CanadaFoxGeoIP.lookup(address).then(code => {
++      browser.canadafoxServedFromCountry = code;
++    });
++  },
++};
+diff --git a/browser/base/content/browser-init.js b/browser/base/content/browser-init.js
+index 2688f7d26b..1f9c34e55f 100644
+--- a/browser/base/content/browser-init.js
++++ b/browser/base/content/browser-init.js
+@@ -439,6 +439,8 @@ var gBrowserInit = {
+ 
+     this._cancelDelayedStartup();
+ 
++    CanadaFoxServedFrom.init();
++
+     gBrowser.addEventListener(
+       "PermissionStateChange",
+       function () {
+diff --git a/browser/base/content/browser-siteIdentity.js b/browser/base/content/browser-siteIdentity.js
+index 16b222280f..a889ac72b0 100644
+--- a/browser/base/content/browser-siteIdentity.js
++++ b/browser/base/content/browser-siteIdentity.js
+@@ -1034,6 +1034,33 @@ var gIdentityHandler = {
+    * based on the specified mode, and the details of the SSL cert, where
+    * applicable
+    */
++  // CanadaFox: fill in the "Served from <country>" line. The country comes
++  // from the IP that answered the connection, recorded by CanadaFoxServedFrom
++  // in browser.js. That says which server replied -- not where a company
++  // stores data or which law governs it, since a foreign site behind a CDN
++  // frequently answers from a Canadian edge node. The string claims only what
++  // was actually measured.
++  _refreshServedFrom() {
++    let row = document.getElementById("identity-popup-served-from");
++    if (!row) {
++      return;
++    }
++    let code = gBrowser.selectedBrowser?.canadafoxServedFromCountry;
++    row.hidden = !code;
++    if (!code) {
++      return;
++    }
++    let name = code;
++    try {
++      name = new Intl.DisplayNames(undefined, { type: "region" }).of(code);
++    } catch (ex) {
++      // Fall back to the raw code for regions Intl does not know.
++    }
++    document.l10n.setAttributes(row, "identity-served-from", {
++      country: name,
++    });
++  },
++
+   refreshIdentityPopup() {
+     // Update cookies and site data information and show the
+     // "Clear Site Data" button if the site is storing local data, and
+@@ -1055,6 +1082,8 @@ var gIdentityHandler = {
+       });
+     }
+ 
++    this._refreshServedFrom();
++
+     // Determine connection security information.
+     let connection = this.getConnectionSecurityInformation();
+ 
+diff --git a/browser/components/controlcenter/content/identityPanel.inc.xhtml b/browser/components/controlcenter/content/identityPanel.inc.xhtml
+index d7f214f471..e192c5e52f 100644
+--- a/browser/components/controlcenter/content/identityPanel.inc.xhtml
++++ b/browser/components/controlcenter/content/identityPanel.inc.xhtml
+@@ -51,6 +51,8 @@
+           <vbox class="identity-popup-security-content" flex="1">
+ 
+             <vbox id="identity-popup-security-description">
++              <!-- CanadaFox: which country the responding server is in. -->
++              <description id="identity-popup-served-from" hidden="true"></description>
+               <description id="identity-popup-security-ev-content-owner"
+                            when-connection="secure-ev"/>
+               <description class="identity-popup-warning-box identity-popup-warning-gray"
+diff --git a/browser/locales/en-US/browser/browser.ftl b/browser/locales/en-US/browser/browser.ftl
+index c2ff261b59..e4824ae80d 100644
+--- a/browser/locales/en-US/browser/browser.ftl
++++ b/browser/locales/en-US/browser/browser.ftl
+@@ -444,6 +444,12 @@ identity-header-security-with-host =
+     .title = Connection security for { $host }
+ identity-connection-not-secure = Connection not secure
+ identity-connection-secure = Connection secure
++
++# CanadaFox: shown in the site-information panel. Deliberately says where the
++# response came *from* -- it reflects the IP that answered, which is not a
++# claim about where a company stores data or which jurisdiction applies.
++# $country (String) - Localized country name, e.g. "Canada".
++identity-served-from = Served from { $country }
+ identity-connection-failure = Connection failure
+ identity-connection-internal = This is a secure { -brand-short-name } page.
+ identity-connection-file = This page is stored on your computer.
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 05a9f83a17..5a6374efab 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -24,3 +24,4 @@ browser.jar:
+   content/branding/canada-flag-color.svg
+   content/branding/canada-newtab.html
+   content/branding/canada-welcome.html
++  content/branding/dbip-country.bin

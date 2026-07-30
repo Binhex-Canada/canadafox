@@ -3,38 +3,68 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.0.3] - unreleased
 
 ### Added
-- New Tab now shows a self-contained page (no network request) that rotates
+- **Canadian DNS.** DNS-over-HTTPS now goes through
+  [CIRA Canadian Shield](https://www.cira.ca/en/canadian-shield/) — the
+  resolver run by the non-profit that operates the `.ca` registry — on its
+  Protected tier, which also blocks known malware and phishing domains.
+  Lookups stay on Canadian infrastructure instead of a US resolver. Firefox
+  falls back to the system resolver if it is unreachable, so captive portals
+  and hotel Wi-Fi still work, and the setting is left unlocked so it can be
+  changed in Settings.
+- **"Served from" in the site-information panel.** Click the padlock and
+  CanadaFox shows which country answered the connection. The lookup runs
+  entirely offline against a bundled database — nothing about your browsing
+  is sent anywhere to produce it. Note this reports the *responding server*,
+  not where a company stores your data: a foreign site behind a CDN often
+  answers from a Canadian edge node.
+- New Tab shows a self-contained page (no network request) that rotates
   through Canadian trivia, or an "on this day in Canadian history" fact when
-  today's date matches one — instead of the normal topsites/shortcuts grid.
+  today's date matches one, instead of the normal topsites/shortcuts grid.
   It's a real `about:` page (`about:canadafoxnewtab`), so the address bar
   stays empty on a new tab exactly as it does in stock Firefox.
 - A pre-loaded **Canadian Services** bookmarks folder (Canada Revenue Agency,
-  Service Canada, Canada.ca Health, CBC News), shown on the bookmarks
-  toolbar by default.
+  Service Canada, Canada.ca Health, CBC News) on the bookmarks toolbar.
 - CanadaFox checks GitHub once per session for a newer release and shows a
   dismissible notification bar if one's available, linking to the release
   page. It never downloads or installs anything automatically, and only
   notifies once per newly-seen version.
 
+### Changed
+- The bookmarks toolbar is shown by default, so the pre-loaded folder is
+  actually visible. Set as a real default pref rather than through
+  distribution.ini's `browser.showPersonalToolbar`, which only writes the
+  setting on a profile's very first run and so never reached existing
+  profiles. Changing it in View > Toolbars still takes precedence.
+- The About dialog no longer shows the internal distribution identifier
+  (e.g. "canadafox - 1.0").
+- `about:home`'s startup cache is disabled. It assumes Activity Stream has
+  been constructed, which no longer happens now that new tabs point
+  elsewhere; the cache only pre-renders `about:home` slightly sooner, so
+  this trades a marginal startup optimization for a clean startup.
+
 ### Fixed
-- The Canadian welcome/quote page now actually persists: it opens pinned on
-  a profile's first run and, being pinned, is restored on every launch after
-  that until the user closes it — then it stays gone. It was previously tied
-  to Firefox's one-shot first-run trigger, which fires once per profile and
-  so could never provide "always there until dismissed".
-- The welcome and New Tab pages are served as real `about:` pages instead of
-  `data:` URIs. Top-level `data:` navigation is blocked by Firefox's own
-  security policy, and `data:` pages get a null principal, which is why the
-  raw base64 blob used to show in the address bar.
-- Removed the internal distribution identifier line (e.g. "canadafox - 1.0")
-  from the About dialog.
-- The bookmarks toolbar is now shown by default via an actual default pref,
-  rather than through distribution.ini's `browser.showPersonalToolbar`, which
-  only writes the setting on a profile's very first run and so never reached
-  existing profiles. Changing it in View > Toolbars still sticks.
+- The Canadian welcome/quote page now actually persists. It opens pinned on a
+  profile's first run and is restored on every launch after that until the
+  user closes it, after which it stays gone. Three separate causes: it was a
+  `data:` URI, which Firefox blocks for top-level navigation outright; its
+  appearance was tied to Firefox's one-shot first-run trigger, which fires
+  once per profile and so could never mean "always there until dismissed";
+  and dismissal was recorded on any tab close, including the ones fired while
+  the window tears down at shutdown — so quitting counted as dismissing it.
+- The welcome and New Tab pages are served as real `about:` pages rather than
+  `data:` URIs. Besides being blocked for top-level navigation, `data:` pages
+  get a null principal, which is why a raw base64 blob used to appear in the
+  address bar.
+- An intermittent startup crash introduced while fixing the New Tab page:
+  overriding `AboutNewTab` tore down Activity Stream, which
+  `AboutHomeStartupCache` then dereferenced unconditionally.
+
+### Internal
+- Builds go through `sccache`, so unchanged objects are reused between
+  rebuilds instead of recompiled from scratch.
 
 ## [0.0.2] - 2026-07-28
 

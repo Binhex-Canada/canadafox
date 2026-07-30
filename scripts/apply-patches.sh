@@ -34,6 +34,13 @@ if [ -f branding/icon/canadafox.icns ]; then
   echo "Copied branding/icon/canadafox.icns -> $DEST/browser/branding/unofficial/firefox.icns"
 fi
 
+# Vendored IP-to-country database (see vendor/geoip/README.md). Binary asset,
+# so it is copied rather than carried as a text patch.
+if [ -f vendor/geoip/dbip-country.bin ]; then
+  cp vendor/geoip/dbip-country.bin "$DEST/browser/branding/unofficial/content/dbip-country.bin"
+  echo "Copied vendor/geoip/dbip-country.bin -> $DEST/browser/branding/unofficial/content/"
+fi
+
 # Vendored, unmodified, Mozilla-signed extension xpis (see vendor/extensions/
 # README.md) get copied in the same way, rather than committed as a diff.
 if [ -d vendor/extensions ]; then

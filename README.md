@@ -13,7 +13,7 @@ This repo does **not** vendor the Firefox source tree. It holds:
 - `mozconfig` — build configuration
 - `scripts/` — fetch, patch, bootstrap, and build helpers
 - `branding/` — app name/icon overrides (added later)
-- `vendor/` — unmodified, third-party binary assets (see `vendor/extensions/README.md`)
+- `vendor/` — unmodified, third-party binary assets (see the README in each subfolder)
 - `CHANGELOG.md` — release history
 
 The upstream source is cloned into `./firefox/` (gitignored) so it can be
@@ -37,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 23 (see `patches/`) |
+| Patches applied | 25 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -79,6 +79,22 @@ every launch after that. Close it and it's gone for good.
 Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
 Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,
 which is shown by default.
+
+Note: DNS-over-HTTPS is pointed at
+[CIRA Canadian Shield](https://www.cira.ca/en/canadian-shield/) (Protected
+tier), run by the non-profit that operates the `.ca` registry, so DNS
+lookups stay on Canadian infrastructure and known malware/phishing domains
+are blocked at the DNS layer. Firefox falls back to the system resolver if
+it can't be reached, so captive portals still work, and the setting is left
+unlocked so you can change it in Settings.
+
+Note: the site-information panel (click the padlock) shows which country
+answered the connection, e.g. *Served from Canada*. The lookup is entirely
+offline, against a database bundled in the app — no request is made to
+produce it. It describes the **responding server**, not where a company
+stores your data or which law applies: a foreign site behind a CDN commonly
+answers from a Canadian edge node. Data from
+[DB-IP](https://db-ip.com) under CC BY 4.0; see `vendor/geoip/README.md`.
 
 Note: once per session, CanadaFox checks
 `github.com/Binhex-Canada/canadafox`'s latest release and shows a
