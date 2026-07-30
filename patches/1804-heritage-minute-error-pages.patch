@@ -1,0 +1,260 @@
+diff --git a/toolkit/content/aboutNetError.html b/toolkit/content/aboutNetError.html
+index f894d4381c..e2409ab336 100644
+--- a/toolkit/content/aboutNetError.html
++++ b/toolkit/content/aboutNetError.html
+@@ -56,6 +56,14 @@
+         <!-- Long Description -->
+         <div id="errorLongDesc"></div>
+ 
++        <!-- CanadaFox: a Heritage Minute blurb, shown only on genuine
++             network errors (not certificate/security errors). -->
++        <div id="canadafoxHeritageMinute" class="canadafox-heritage-minute" hidden="">
++          <p class="canadafox-heritage-minute-label">A part of our heritage.</p>
++          <p id="canadafoxHeritageMinuteTitle" class="canadafox-heritage-minute-title"></p>
++          <p id="canadafoxHeritageMinuteBlurb"></p>
++        </div>
++
+         <div id="trrOnlyContainer" hidden="">
+           <p id="trrOnlyMessage"></p>
+           <div class="trr-message-container">
+diff --git a/toolkit/content/aboutNetError.mjs b/toolkit/content/aboutNetError.mjs
+index d600f36655..edcd0846bc 100644
+--- a/toolkit/content/aboutNetError.mjs
++++ b/toolkit/content/aboutNetError.mjs
+@@ -395,6 +395,75 @@ function initTitleAndBodyIds(baseURL, isTRROnlyFailure) {
+   return { pageTitleId, bodyTitle, bodyTitleId, longDesc };
+ }
+ 
++// CanadaFox: real Heritage Minutes (Historica Canada's long-running short-film
++// series), shown as a small blurb on genuine network errors. Deliberately not
++// shown on certificate/security error pages -- initPage() only reaches the
++// call site for regular net errors, cert errors return earlier.
++const CANADAFOX_HERITAGE_MINUTES = [
++  {
++    title: "Basketball",
++    blurb:
++      "In 1891, Ontario-born James Naismith invented basketball while teaching physical education in Springfield, Massachusetts \u2014 using a soccer ball and two peach baskets.",
++  },
++  {
++    title: "Superman",
++    blurb:
++      "Toronto-born Joe Shuster co-created Superman with writer Jerry Siegel in the 1930s, drawing the character for the very first comics.",
++  },
++  {
++    title: "Winnie",
++    blurb:
++      "In 1914, Canadian soldier Harry Colebourn bought a bear cub and named her Winnie, after his hometown of Winnipeg \u2014 she later inspired Winnie-the-Pooh.",
++  },
++  {
++    title: "Peacekeeping",
++    blurb:
++      "Lester B. Pearson won the 1957 Nobel Peace Prize for proposing the United Nations' first large-scale peacekeeping force during the Suez Crisis.",
++  },
++  {
++    title: "Burnt Toast",
++    blurb:
++      "Neurosurgeon Wilder Penfield mapped the brain by stimulating regions during surgery on awake patients \u2014 in one case, triggering a patient's vivid memory of the smell of burnt toast.",
++  },
++  {
++    title: "Jackie Robinson",
++    blurb:
++      "Before breaking Major League Baseball's colour barrier, Jackie Robinson played his first professional game for the Montreal Royals in 1946.",
++  },
++  {
++    title: "Bombardier",
++    blurb:
++      "Qu\u00e9bec inventor Joseph-Armand Bombardier patented the snowmobile in the 1930s, building vehicles that could travel over deep snow.",
++  },
++  {
++    title: "Halifax Explosion",
++    blurb:
++      "During the 1917 Halifax Explosion, train dispatcher Vince Coleman stayed at his telegraph key to warn incoming trains of the danger, saving hundreds of lives.",
++  },
++  {
++    title: "Laura Secord",
++    blurb:
++      "During the War of 1812, Laura Secord walked roughly 30 km through enemy territory to warn British and Canadian forces of an American attack.",
++  },
++];
++
++function initCanadaFoxHeritageMinute() {
++  const container = document.getElementById("canadafoxHeritageMinute");
++  if (!container) {
++    return;
++  }
++  const dayOfYear = Math.floor(
++    (Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000
++  );
++  const entry =
++    CANADAFOX_HERITAGE_MINUTES[dayOfYear % CANADAFOX_HERITAGE_MINUTES.length];
++  document.getElementById("canadafoxHeritageMinuteTitle").textContent =
++    `Heritage Minutes: ${entry.title}`;
++  document.getElementById("canadafoxHeritageMinuteBlurb").textContent =
++    entry.blurb;
++  container.hidden = false;
++}
++
+ function initPage() {
+   // We show an offline support page in case of a system-wide error,
+   // when a user cannot connect to the internet and access the SUMO website.
+@@ -457,6 +526,7 @@ function initPage() {
+   }
+ 
+   document.body.classList.add("neterror");
++  initCanadaFoxHeritageMinute();
+ 
+   // nssFailure2 are TLS errors which are tracked by load_abouttlserror
+   if (gErrorCode !== "nssFailure2" && !isCaptive()) {
+diff --git a/toolkit/content/net-error-card.mjs b/toolkit/content/net-error-card.mjs
+index 8f51084ea1..3806cf9776 100644
+--- a/toolkit/content/net-error-card.mjs
++++ b/toolkit/content/net-error-card.mjs
+@@ -41,6 +41,56 @@ const FELT_PRIVACY_REFRESH = RPMGetBoolPref(
+ );
+ const EXPERT_BAD_CERT = getCSSClass() === "expertBadCert";
+ 
++// CanadaFox: kept in sync with the identical array in aboutNetError.mjs,
++// which is the fallback path when security.certerrors.felt-privacy-v1 is off.
++const CANADAFOX_HERITAGE_MINUTES = [
++  {
++    title: "Basketball",
++    blurb:
++      "In 1891, Ontario-born James Naismith invented basketball while teaching physical education in Springfield, Massachusetts \u2014 using a soccer ball and two peach baskets.",
++  },
++  {
++    title: "Superman",
++    blurb:
++      "Toronto-born Joe Shuster co-created Superman with writer Jerry Siegel in the 1930s, drawing the character for the very first comics.",
++  },
++  {
++    title: "Winnie",
++    blurb:
++      "In 1914, Canadian soldier Harry Colebourn bought a bear cub and named her Winnie, after his hometown of Winnipeg \u2014 she later inspired Winnie-the-Pooh.",
++  },
++  {
++    title: "Peacekeeping",
++    blurb:
++      "Lester B. Pearson won the 1957 Nobel Peace Prize for proposing the United Nations' first large-scale peacekeeping force during the Suez Crisis.",
++  },
++  {
++    title: "Burnt Toast",
++    blurb:
++      "Neurosurgeon Wilder Penfield mapped the brain by stimulating regions during surgery on awake patients \u2014 in one case, triggering a patient's vivid memory of the smell of burnt toast.",
++  },
++  {
++    title: "Jackie Robinson",
++    blurb:
++      "Before breaking Major League Baseball's colour barrier, Jackie Robinson played his first professional game for the Montreal Royals in 1946.",
++  },
++  {
++    title: "Bombardier",
++    blurb:
++      "Qu\u00e9bec inventor Joseph-Armand Bombardier patented the snowmobile in the 1930s, building vehicles that could travel over deep snow.",
++  },
++  {
++    title: "Halifax Explosion",
++    blurb:
++      "During the 1917 Halifax Explosion, train dispatcher Vince Coleman stayed at his telegraph key to warn incoming trains of the danger, saving hundreds of lives.",
++  },
++  {
++    title: "Laura Secord",
++    blurb:
++      "During the War of 1812, Laura Secord walked roughly 30 km through enemy territory to warn British and Canadian forces of an American attack.",
++  },
++];
++
+ export class NetErrorCard extends MozLitElement {
+   static properties = {
+     hostname: { type: String },
+@@ -652,7 +702,10 @@ export class NetErrorCard extends MozLitElement {
+           useAdvancedSection: true,
+         });
+ 
+-        return html`<div class="custom-net-error-card">${content}</div>`;
++        return html`<div class="custom-net-error-card">
++          ${content}
++          ${!gIsCertError ? this.canadaFoxHeritageMinuteTemplate() : null}
++        </div>`;
+       }
+       return null;
+     }
+@@ -661,7 +714,10 @@ export class NetErrorCard extends MozLitElement {
+     const params = this.mapCustomNetErrorConfigToParams(customNetError, config);
+     const content = this.customNetErrorSectionTemplate(params);
+ 
+-    return html`<div class="custom-net-error-card">${content}</div>`;
++    return html`<div class="custom-net-error-card">
++      ${content}
++      ${!gIsCertError ? this.canadaFoxHeritageMinuteTemplate() : null}
++    </div>`;
+   }
+ 
+   mapCustomNetErrorConfigToParams(customNetError, config) {
+@@ -1076,6 +1132,24 @@ export class NetErrorCard extends MozLitElement {
+     }
+   }
+ 
++  // CanadaFox: real Heritage Minutes (Historica Canada's short-film series),
++  // shown only on genuine network errors -- render() only calls this when
++  // !gIsCertError, so it never appears alongside a security warning.
++  canadaFoxHeritageMinuteTemplate() {
++    const dayOfYear = Math.floor(
++      (Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000
++    );
++    const entry =
++      CANADAFOX_HERITAGE_MINUTES[dayOfYear % CANADAFOX_HERITAGE_MINUTES.length];
++    return html`<div class="canadafox-heritage-minute">
++      <p class="canadafox-heritage-minute-label">A part of our heritage.</p>
++      <p class="canadafox-heritage-minute-title">
++        Heritage Minutes: ${entry.title}
++      </p>
++      <p>${entry.blurb}</p>
++    </div>`;
++  }
++
+   render() {
+     if (!this.errorInfo) {
+       return null;
+@@ -1119,7 +1193,8 @@ export class NetErrorCard extends MozLitElement {
+                       ></moz-button>`}</moz-button-group
+                 >
+                 ${this.advancedContainerTemplate()}
+-                ${this.certErrorDebugInfoTemplate()}`}
++                ${this.certErrorDebugInfoTemplate()}
++                ${!gIsCertError ? this.canadaFoxHeritageMinuteTemplate() : null}`}
+         </div>
+       </article>`;
+   }
+diff --git a/toolkit/themes/shared/aboutNetError.css b/toolkit/themes/shared/aboutNetError.css
+index 4a96274379..f19bee24cf 100644
+--- a/toolkit/themes/shared/aboutNetError.css
++++ b/toolkit/themes/shared/aboutNetError.css
+@@ -186,6 +186,28 @@ button:disabled {
+   font-weight: var(--font-weight-semibold);
+ }
+ 
++.canadafox-heritage-minute {
++  margin-top: 24px;
++  padding: 12px 16px;
++  border-inline-start: 3px solid #d64550;
++  background-color: color-mix(in srgb, #d64550 8%, transparent);
++  border-radius: 2px;
++}
++
++.canadafox-heritage-minute-label {
++  margin: 0 0 4px;
++  font-size: 0.8em;
++  font-weight: var(--font-weight-semibold);
++  letter-spacing: 0.02em;
++  text-transform: uppercase;
++  color: #d64550;
++}
++
++.canadafox-heritage-minute-title {
++  margin: 0 0 2px;
++  font-weight: var(--font-weight-semibold);
++}
++
+ #errorShortDesc {
+   font-size: 1.15em;
+   line-height: 1.3;

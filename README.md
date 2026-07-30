@@ -39,7 +39,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `878b64a4c024` (2026-07-30) |
-| Patches applied | 25 (see `patches/`) |
+| Patches applied | 27 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -99,6 +99,13 @@ produce it. It describes the **responding server**, not where a company
 stores your data or which law applies: a foreign site behind a CDN commonly
 answers from a Canadian edge node. Data from
 [DB-IP](https://db-ip.com) under CC BY 4.0; see `vendor/geoip/README.md`.
+
+Note: genuine network errors (page not found, connection refused, offline —
+not certificate/security warnings) show a short blurb from a real Historica
+Canada Heritage Minute, e.g. Naismith inventing basketball or Wilder
+Penfield's "burnt toast." Wired into both of Firefox's error-page rendering
+paths, since a very recent Nightly refresh replaces the classic one for most
+error types.
 
 Note: once per session, CanadaFox checks
 `github.com/Binhex-Canada/canadafox`'s latest release and shows a

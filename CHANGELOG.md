@@ -6,6 +6,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.0.3] - unreleased
 
 ### Added
+- **Heritage Minute error pages.** Genuine network errors (page not found,
+  connection refused, offline) now show a short blurb from a real Historica
+  Canada Heritage Minute — Naismith inventing basketball, Wilder Penfield's
+  "burnt toast," Vince Coleman at the Halifax Explosion, and others.
+  Deliberately left off certificate/security warning pages, where a playful
+  aside doesn't belong. Wired into both of Firefox's error-page rendering
+  paths, since a very recent Nightly refresh (`security.certerrors.felt-privacy-v1`)
+  replaces the classic one for most error types.
 - **Canadian DNS.** DNS-over-HTTPS now goes through
   [CIRA Canadian Shield](https://www.cira.ca/en/canadian-shield/) — the
   resolver run by the non-profit that operates the `.ca` registry — on its
