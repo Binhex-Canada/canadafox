@@ -1,0 +1,53 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 9d70c1841a..e775a11ffa 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -9,6 +9,7 @@ const lazy = {};
+ 
+ ChromeUtils.defineESModuleGetters(lazy, {
+   AboutHomeStartupCache: "resource:///modules/AboutHomeStartupCache.sys.mjs",
++  PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
+   AWToolbarButton: "resource:///modules/aboutwelcome/AWToolbarUtils.sys.mjs",
+   ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
+   ASRouterDefaultConfig:
+@@ -402,6 +403,7 @@ BrowserGlue.prototype = {
+     lazy.DistributionManagement.applyCustomizations();
+ 
+     this._initCiraDnsToggle();
++    this._initKeywordShortcuts();
+ 
+     // handle any UI migration
+     this._migrateUI();
+@@ -449,6 +451,32 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
++  // CanadaFox: address-bar keyword shortcuts matching the pre-loaded
++  // "Canadian Services" bookmarks folder (see distribution.ini) -- type
++  // e.g. "cra" and hit enter instead of navigating the menu or typing the
++  // full URL. PlacesUtils.keywords.insert() is idempotent (a no-op if the
++  // same keyword/URL pair already exists) and creates the underlying
++  // moz_places row itself, so this needs no "already ran" guard and doesn't
++  // depend on the bookmarks actually existing.
++  CANADAFOX_KEYWORD_SHORTCUTS: {
++    cra: "https://www.canada.ca/en/revenue-agency.html",
++    service: "https://www.canada.ca/en/employment-social-development/corporate/portfolio/service-canada.html",
++    health: "https://www.canada.ca/en/services/health.html",
++    cbc: "https://www.cbc.ca/news",
++  },
++
++  async _initKeywordShortcuts() {
++    for (let [keyword, url] of Object.entries(
++      this.CANADAFOX_KEYWORD_SHORTCUTS
++    )) {
++      try {
++        await lazy.PlacesUtils.keywords.insert({ keyword, url });
++      } catch (ex) {
++        console.error("CanadaFox: failed to register keyword", keyword, ex);
++      }
++    }
++  },
++
+   _checkForOldBuildUpdates() {
+     // check for update if our build is old
+     if (

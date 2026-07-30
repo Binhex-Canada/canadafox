@@ -3,9 +3,14 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.0.3] - unreleased
+## [0.0.3] - 2026-07-30
 
 ### Added
+- **Address-bar keyword shortcuts** for the Canadian Services bookmarks:
+  type `cra`, `service`, `health`, or `cbc` and hit enter instead of
+  navigating there manually.
+- Two more entries in the **Canadian Services** bookmarks folder: the
+  federal Benefits Finder and BC's Services A-Z directory.
 - **Heritage Minute error pages.** Genuine network errors (page not found,
   connection refused, offline) now show a short blurb from a real Historica
   Canada Heritage Minute — Naismith inventing basketball, Wilder Penfield's

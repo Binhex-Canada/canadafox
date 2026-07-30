@@ -1,0 +1,16 @@
+diff --git a/browser/app/distribution/distribution.ini b/browser/app/distribution/distribution.ini
+index 05e6214b9b..a88a6c63e1 100644
+--- a/browser/app/distribution/distribution.ini
++++ b/browser/app/distribution/distribution.ini
+@@ -24,3 +24,11 @@ item.3.link=https://www.canada.ca/en/services/health.html
+ item.4.type=bookmark
+ item.4.title=CBC News
+ item.4.link=https://www.cbc.ca/news
++
++item.5.type=bookmark
++item.5.title=Canada Benefits Finder
++item.5.link=https://www.canada.ca/en/services/benefits/finder.html
++
++item.6.type=bookmark
++item.6.title=BC Services A-Z
++item.6.link=https://www2.gov.bc.ca/gov/content/home/services-a-z
