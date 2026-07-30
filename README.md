@@ -1,5 +1,7 @@
 # CanadaFox
 
+![The flag of Canada](docs/images/canada-flag-4k.png)
+
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
 
