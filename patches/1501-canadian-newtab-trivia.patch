@@ -1,5 +1,5 @@
 diff --git a/browser/modules/AboutNewTab.sys.mjs b/browser/modules/AboutNewTab.sys.mjs
-index 4d6b04e72b..08ea2aeb4d 100644
+index 4d6b04e72b..3d4a1c1edb 100644
 --- a/browser/modules/AboutNewTab.sys.mjs
 +++ b/browser/modules/AboutNewTab.sys.mjs
 @@ -19,6 +19,12 @@ ChromeUtils.defineESModuleGetters(lazy, {
@@ -15,20 +15,23 @@ index 4d6b04e72b..08ea2aeb4d 100644
  const PREF_ACTIVITY_STREAM_DEBUG = "browser.newtabpage.activity-stream.debug";
  // AboutHomeStartupCache needs us in "quit-application", so stay alive longer.
  // TODO: We could better have a shared async shutdown blocker?
-@@ -44,8 +50,11 @@ export const AboutNewTab = {
- 
-   _cachedTopSites: null,
- 
--  _newTabURL: ABOUT_URL,
--  _newTabURLOverridden: false,
-+  // CanadaFox: seed both fields (not just the default URL) so init()'s
-+  // toggleActivityStream(true) call doesn't stomp this back to ABOUT_URL --
-+  // it only resets _newTabURL when _newTabURLOverridden is still false.
-+  _newTabURL: CANADAFOX_NEW_TAB_URL,
-+  _newTabURLOverridden: true,
+@@ -109,6 +115,16 @@ export const AboutNewTab = {
+       this,
+       lazy.TelemetryReportingPolicy.TELEMETRY_TOU_ACCEPTED_OR_INELIGIBLE
+     );
++
++    // CanadaFox: apply the New Tab override through the normal setter,
++    // *after* toggleActivityStream(true) above has run. Pre-seeding
++    // _newTabURLOverridden as a field default instead (skipping this) let
++    // toggleActivityStream's early-return trigger before Activity Stream
++    // ever constructed itself, leaving AboutNewTab.activityStream null --
++    // which AboutHomeStartupCache.requestCache() dereferences
++    // unconditionally, crashing intermittently at startup. Going through
++    // the setter keeps that bootstrap intact and only swaps the final URL.
++    this.newTabURL = CANADAFOX_NEW_TAB_URL;
+   },
  
    /**
-    * init - Initializes an instance of Activity Stream if one doesn't exist already.
 diff --git a/browser/branding/unofficial/content/canada-newtab.html b/browser/branding/unofficial/content/canada-newtab.html
 new file mode 100644
 index 0000000000..0a15512b52
