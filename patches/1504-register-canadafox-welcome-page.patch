@@ -1,0 +1,118 @@
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+index ba11669028..fa30f5d6c0 100644
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -72,6 +72,14 @@ static const RedirEntry kRedirMap[] = {
+      nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+          nsIAboutModule::HIDE_FROM_ABOUTABOUT},
++    // CanadaFox: the welcome/quote page. Also a real about: page rather
++    // than a data: URI -- top-level data: URI navigation is blocked
++    // outright by security.data_uri.block_toplevel_data_uri_navigations,
++    // which defaults to true, so a data: welcome page can't reliably load.
++    {"canadafoxwelcome", "chrome://branding/content/canada-welcome.html",
++     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
++         nsIAboutModule::URI_CAN_LOAD_IN_CHILD |
++         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+     {"unloads", "chrome://browser/content/tabunloader/aboutUnloads.html",
+      nsIAboutModule::ALLOW_SCRIPT},
+     {"framecrashed", "chrome://browser/content/aboutFrameCrashed.html",
+diff --git a/browser/components/about/components.conf b/browser/components/about/components.conf
+index 60bb32caa0..1a05f866de 100644
+--- a/browser/components/about/components.conf
++++ b/browser/components/about/components.conf
+@@ -7,6 +7,7 @@ pages = [
+     'asrouter',
+     'blocked',
+     'canadafoxnewtab',
++    'canadafoxwelcome',
+     'certerror',
+     'downloads',
+     'framecrashed',
+diff --git a/browser/branding/unofficial/content/canada-welcome.html b/browser/branding/unofficial/content/canada-welcome.html
+new file mode 100644
+index 0000000000..a4e1356ca8
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-welcome.html
+@@ -0,0 +1,72 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<!DOCTYPE html>
++<html lang="en">
++<head>
++<meta charset="utf-8">
++<title>Welcome to CanadaFox</title>
++<style>
++  html, body {
++    margin: 0;
++    height: 100%;
++    background: #130829;
++    color: #fff;
++    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
++  }
++  body {
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    padding: 40px 24px;
++    box-sizing: border-box;
++  }
++  main {
++    max-width: 640px;
++    text-align: center;
++  }
++  h1 {
++    font-size: 20px;
++    font-weight: 700;
++    letter-spacing: 0.02em;
++    text-transform: uppercase;
++    color: #d64550;
++    margin: 0 0 28px;
++  }
++  blockquote {
++    margin: 0;
++    font-size: 30px;
++    line-height: 1.4;
++    font-style: italic;
++    font-weight: 600;
++  }
++  blockquote::before {
++    content: "\201C";
++  }
++  blockquote::after {
++    content: "\201D";
++  }
++  cite {
++    display: block;
++    margin-top: 28px;
++    font-style: normal;
++    font-size: 15px;
++    line-height: 1.7;
++    color: rgba(255, 255, 255, 0.7);
++  }
++  cite strong {
++    color: #fff;
++  }
++</style>
++</head>
++<body>
++<main>
++  <h1>Welcome to CanadaFox</h1>
++  <blockquote>The 20th century shall be the century of Canada and Canadian development. For the next 100 years, Canada shall be the star towards which all men who love progress and freedom shall come.</blockquote>
++  <cite>
++    <strong>Prime Minister Sir Wilfrid Laurier</strong><br>
++    Massey Hall, Toronto, Ontario &mdash; October 14, 1904
++  </cite>
++</main>
++</body>
++</html>
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 401bac37f9..05a9f83a17 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -23,3 +23,4 @@ browser.jar:
+   content/branding/canada-flag.svg
+   content/branding/canada-flag-color.svg
+   content/branding/canada-newtab.html
++  content/branding/canada-welcome.html

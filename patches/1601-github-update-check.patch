@@ -1,18 +1,18 @@
 diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
-index 80664cb6d8..5c9d683a4c 100644
+index 47376b0e3b..955ddde413 100644
 --- a/browser/components/BrowserGlue.sys.mjs
 +++ b/browser/components/BrowserGlue.sys.mjs
-@@ -799,6 +799,8 @@ BrowserGlue.prototype = {
+@@ -797,6 +797,8 @@ BrowserGlue.prototype = {
  
-     this._maybePinFirstRunWelcomeTab(aWindow);
+     this._checkForOldBuildUpdates();
  
-+    this._checkForCanadaFoxUpdate(aWindow);
++    this._checkForCanadaFoxUpdate();
 +
      // Check if Sync is configured
      if (Services.prefs.prefHasUserValue("services.sync.username")) {
        lazy.WeaveService.init();
-@@ -836,6 +838,63 @@ BrowserGlue.prototype = {
-     }
+@@ -876,6 +878,61 @@ BrowserGlue.prototype = {
+     });
    },
  
 +  // CanadaFox: once per session, check GitHub for a newer release and show
@@ -20,7 +20,7 @@ index 80664cb6d8..5c9d683a4c 100644
 +  // applies anything -- it just links to the GitHub release page. Each
 +  // newly-seen version is only ever notified once (tracked via a pref), so
 +  // restarting doesn't re-nag about a release the user already saw.
-+  async _checkForCanadaFoxUpdate(aWindow) {
++  async _checkForCanadaFoxUpdate() {
 +    const PREF_LAST_NOTIFIED = "canadafox.update.lastNotifiedVersion";
 +    try {
 +      let response = await fetch(
@@ -37,9 +37,7 @@ index 80664cb6d8..5c9d683a4c 100644
 +      if (Services.vc.compare(latestVersion, Services.appinfo.version) <= 0) {
 +        return;
 +      }
-+      if (
-+        Services.prefs.getCharPref(PREF_LAST_NOTIFIED, "") == latestVersion
-+      ) {
++      if (Services.prefs.getCharPref(PREF_LAST_NOTIFIED, "") == latestVersion) {
 +        return;
 +      }
 +      Services.prefs.setCharPref(PREF_LAST_NOTIFIED, latestVersion);

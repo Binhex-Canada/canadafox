@@ -9,6 +9,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New Tab now shows a self-contained page (no network request) that rotates
   through Canadian trivia, or an "on this day in Canadian history" fact when
   today's date matches one — instead of the normal topsites/shortcuts grid.
+  It's a real `about:` page (`about:canadafoxnewtab`), so the address bar
+  stays empty on a new tab exactly as it does in stock Firefox.
 - A pre-loaded **Canadian Services** bookmarks folder (Canada Revenue Agency,
   Service Canada, Canada.ca Health, CBC News), shown on the bookmarks
   toolbar by default.
@@ -16,6 +18,19 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   dismissible notification bar if one's available, linking to the release
   page. It never downloads or installs anything automatically, and only
   notifies once per newly-seen version.
+
+### Fixed
+- The Canadian welcome/quote page now actually persists: it opens pinned on
+  a profile's first run and, being pinned, is restored on every launch after
+  that until the user closes it — then it stays gone. It was previously tied
+  to Firefox's one-shot first-run trigger, which fires once per profile and
+  so could never provide "always there until dismissed".
+- The welcome and New Tab pages are served as real `about:` pages instead of
+  `data:` URIs. Top-level `data:` navigation is blocked by Firefox's own
+  security policy, and `data:` pages get a null principal, which is why the
+  raw base64 blob used to show in the address bar.
+- Removed the internal distribution identifier line (e.g. "canadafox - 1.0")
+  from the About dialog.
 
 ## [0.0.2] - 2026-07-28
 

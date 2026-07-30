@@ -1,37 +1,25 @@
-diff --git a/browser/modules/AboutNewTab.sys.mjs b/browser/modules/AboutNewTab.sys.mjs
-index 4d6b04e72b..3d4a1c1edb 100644
---- a/browser/modules/AboutNewTab.sys.mjs
-+++ b/browser/modules/AboutNewTab.sys.mjs
-@@ -19,6 +19,12 @@ ChromeUtils.defineESModuleGetters(lazy, {
+diff --git a/browser/base/content/utilityOverlay.js b/browser/base/content/utilityOverlay.js
+index 7f24e3a5f3..6a91f93e48 100644
+--- a/browser/base/content/utilityOverlay.js
++++ b/browser/base/content/utilityOverlay.js
+@@ -67,7 +67,16 @@ Object.defineProperty(this, "BROWSER_NEW_TAB_URL", {
+     if (AIWindow.isAIWindowActive(window)) {
+       return AIWindow.newTabURL;
+     }
+-    return AboutNewTab.newTabURL;
++    // CanadaFox: new tabs show the Canadian trivia page. This is done here
++    // rather than by overriding AboutNewTab.newTabURL, because that path
++    // also tears down Activity Stream, which AboutHomeStartupCache then
++    // dereferences unconditionally at startup (verified: doing it that way
++    // logs "activityStream is null" on every launch). An extension that
++    // legitimately claims the New Tab page still wins.
++    if (AboutNewTab.newTabURLOverridden) {
++      return AboutNewTab.newTabURL;
++    }
++    return "about:canadafoxnewtab";
+   },
  });
  
- const ABOUT_URL = "about:newtab";
-+// CanadaFox: every new tab shows a self-contained page (no network request)
-+// that rotates through Canadian trivia, or an "on this day" fact when
-+// today's date matches one. Registered as a real about: page (see
-+// AboutRedirector.cpp) rather than a data: URI, since data: URIs get a
-+// null principal and always show in full in the address bar.
-+const CANADAFOX_NEW_TAB_URL = "about:canadafoxnewtab";
- const PREF_ACTIVITY_STREAM_DEBUG = "browser.newtabpage.activity-stream.debug";
- // AboutHomeStartupCache needs us in "quit-application", so stay alive longer.
- // TODO: We could better have a shared async shutdown blocker?
-@@ -109,6 +115,16 @@ export const AboutNewTab = {
-       this,
-       lazy.TelemetryReportingPolicy.TELEMETRY_TOU_ACCEPTED_OR_INELIGIBLE
-     );
-+
-+    // CanadaFox: apply the New Tab override through the normal setter,
-+    // *after* toggleActivityStream(true) above has run. Pre-seeding
-+    // _newTabURLOverridden as a field default instead (skipping this) let
-+    // toggleActivityStream's early-return trigger before Activity Stream
-+    // ever constructed itself, leaving AboutNewTab.activityStream null --
-+    // which AboutHomeStartupCache.requestCache() dereferences
-+    // unconditionally, crashing intermittently at startup. Going through
-+    // the setter keeps that bootstrap intact and only swaps the final URL.
-+    this.newTabURL = CANADAFOX_NEW_TAB_URL;
-   },
- 
-   /**
 diff --git a/browser/branding/unofficial/content/canada-newtab.html b/browser/branding/unofficial/content/canada-newtab.html
 new file mode 100644
 index 0000000000..0a15512b52

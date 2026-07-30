@@ -37,7 +37,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.2` |
 | Based on | Firefox `155.0a1` |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `34ce15fe54f7` (2026-07-26) |
-| Patches applied | 22 (see `patches/`) |
+| Patches applied | 23 (see `patches/`) |
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this
@@ -57,11 +57,6 @@ page (Settings → CanadaFox Settings) as a cross-reference, in addition to
 staying in its normal section — nothing is moved out of where a Firefox
 user would expect to find it.
 
-Note: the first-run tab that normally opens Mozilla's privacy policy page
-instead opens a local, self-contained page (no network request) with a
-Canadian historical quote. Static for now — may switch to pulling a
-random fact from a public archive later, once one's been found.
-
 Note: [uBlock Origin](https://addons.mozilla.org/firefox/addon/ublock-origin/)
 comes pre-installed, unmodified, and Mozilla-signed — same name, same
 author (Raymond Hill & contributors), same GPLv3 license, and it updates
@@ -73,7 +68,13 @@ Users can disable or remove it like any other extension.
 Note: New Tab (not the Home button/startup page) shows a self-contained
 page with rotating Canadian trivia, or an "on this day in Canadian
 history" fact when today's date matches one, instead of the normal
-topsites/shortcuts grid.
+topsites/shortcuts grid. It's registered as a real `about:` page
+(`about:canadafoxnewtab`), so the address bar stays empty on a new tab
+just like it does in stock Firefox.
+
+Note: the Canadian welcome/quote page (`about:canadafoxwelcome`) opens
+pinned the first time a profile runs and, being pinned, comes back on
+every launch after that. Close it and it's gone for good.
 
 Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
 Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,

@@ -1,41 +1,83 @@
 diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
-index 5425a9883a..80664cb6d8 100644
+index 5425a9883a..47376b0e3b 100644
 --- a/browser/components/BrowserGlue.sys.mjs
 +++ b/browser/components/BrowserGlue.sys.mjs
-@@ -797,6 +797,8 @@ BrowserGlue.prototype = {
- 
-     this._checkForOldBuildUpdates();
- 
-+    this._maybePinFirstRunWelcomeTab(aWindow);
-+
-     // Check if Sync is configured
-     if (Services.prefs.prefHasUserValue("services.sync.username")) {
-       lazy.WeaveService.init();
-@@ -813,6 +815,27 @@ BrowserGlue.prototype = {
+@@ -813,6 +813,69 @@ BrowserGlue.prototype = {
      this._firstWindowTelemetry(aWindow);
    },
  
-+  // CanadaFox: pin the first-run welcome tab (startup.homepage_welcome_url)
-+  // so it persists across restarts like any other pinned tab, instead of
-+  // only ever showing once. It sticks around until the user closes it.
-+  _maybePinFirstRunWelcomeTab(aWindow) {
-+    if (!lazy.BrowserHandler.firstRunProfile) {
++  // CanadaFox: the Canadian welcome/quote tab. It is created once, pinned,
++  // and from then on Firefox's own session restore brings it back on every
++  // startup (pinned tabs are always restored). It stays until the user
++  // closes it, after which it never comes back.
++  //
++  // Deliberately not driven by Firefox's first-run page mechanism: that
++  // fires only once per profile, so it cannot express "always there until
++  // dismissed", and having it open the page too would duplicate this one.
++  //
++  // Creation is gated on our own pref rather than "is the tab already
++  // open?", because at every startup hook the session-restored tabs exist
++  // but have not loaded yet -- their browsers still report about:blank, so
++  // a URL check would always miss and add a duplicate on every launch.
++  PREF_WELCOME_TAB_URL: "canadafox.welcomeTab.url",
++  PREF_WELCOME_TAB_CREATED: "canadafox.welcomeTab.created",
++  PREF_WELCOME_TAB_DISMISSED: "canadafox.welcomeTab.dismissed",
++
++  _maybeShowWelcomeTab() {
++    if (Services.prefs.getBoolPref(this.PREF_WELCOME_TAB_DISMISSED, false)) {
 +      return;
 +    }
-+    let welcomeURL = Services.urlFormatter.formatURLPref(
-+      "startup.homepage_welcome_url"
++    let welcomeURL = Services.prefs.getStringPref(
++      this.PREF_WELCOME_TAB_URL,
++      ""
 +    );
 +    if (!welcomeURL) {
 +      return;
 +    }
-+    for (let tab of aWindow.gBrowser.tabs) {
-+      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
-+        aWindow.gBrowser.pinTab(tab);
-+        break;
-+      }
++    let win = lazy.BrowserWindowTracker.getTopWindow({
++      allowFromInactiveWorkspace: true,
++    });
++    if (!win) {
++      return;
 +    }
++
++    if (!Services.prefs.getBoolPref(this.PREF_WELCOME_TAB_CREATED, false)) {
++      let tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
++      win.gBrowser.pinTab(tab);
++      Services.prefs.setBoolPref(this.PREF_WELCOME_TAB_CREATED, true);
++    }
++
++    // Matching on the URL at close time rather than holding a reference to
++    // a specific tab: by the time a tab is closed it has always loaded, so
++    // this also covers the restored copy we never had a handle on.
++    win.gBrowser.tabContainer.addEventListener("TabClose", event => {
++      if (
++        event.detail?.adoptedBy ||
++        event.target.linkedBrowser?.currentURI?.spec != welcomeURL
++      ) {
++        return;
++      }
++      // Tabs also close when the window is torn down or the app quits, and
++      // neither means the user dismissed the page. Deferring on the
++      // window's own timer rules both out: in those cases the window is
++      // gone before this ever runs.
++      win.setTimeout(() => {
++        if (!Services.startup.shuttingDown) {
++          Services.prefs.setBoolPref(this.PREF_WELCOME_TAB_DISMISSED, true);
++        }
++      }, 1000);
++    });
 +  },
 +
    _maybeOfferProfileReset() {
      // Offer to reset a user's profile if it hasn't been used for 60 days.
      const OFFER_PROFILE_RESET_INTERVAL_MS = 60 * 24 * 60 * 60 * 1000;
+@@ -938,6 +1001,8 @@ BrowserGlue.prototype = {
+     }
+     this._windowsWereRestored = true;
+ 
++    this._maybeShowWelcomeTab();
++
+     lazy.PreonboardingSplash.maybeShowStartupSplash();
+     lazy.BrowserUsageTelemetry.init();
+     lazy.SearchSERPTelemetry.init();
