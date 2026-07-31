@@ -1,0 +1,161 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index e775a11ffa..e171ba8625 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -10,6 +10,7 @@ const lazy = {};
+ ChromeUtils.defineESModuleGetters(lazy, {
+   AboutHomeStartupCache: "resource:///modules/AboutHomeStartupCache.sys.mjs",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
++  SessionStore: "resource:///modules/sessionstore/SessionStore.sys.mjs",
+   AWToolbarButton: "resource:///modules/aboutwelcome/AWToolbarUtils.sys.mjs",
+   ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
+   ASRouterDefaultConfig:
+@@ -404,6 +405,7 @@ BrowserGlue.prototype = {
+ 
+     this._initCiraDnsToggle();
+     this._initKeywordShortcuts();
++    this._ensureCanadianServicesBookmarks();
+ 
+     // handle any UI migration
+     this._migrateUI();
+@@ -477,6 +479,94 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
++  // CanadaFox: keep the "Canadian Services" bookmarks folder topped up with
++  // every entry we ship, on every startup. distribution.ini's bookmark
++  // import (see browser/app/distribution/distribution.ini) only ever runs
++  // once per profile, so any entry added in a later CanadaFox version would
++  // never reach a profile that already existed -- confirmed missing entries
++  // on a real, already-used profile after adding two more here. Checking by
++  // URL and inserting only what's missing means this is safe to run every
++  // launch, and doesn't touch anything the user has since moved or renamed.
++  CANADAFOX_BOOKMARKS_FOLDER_TITLE: "Canadian Services",
++  CANADAFOX_BOOKMARKS: [
++    {
++      title: "Canada Revenue Agency (CRA)",
++      url: "https://www.canada.ca/en/revenue-agency.html",
++    },
++    {
++      title: "Service Canada",
++      url: "https://www.canada.ca/en/employment-social-development/corporate/portfolio/service-canada.html",
++    },
++    {
++      title: "Canada.ca — Health",
++      url: "https://www.canada.ca/en/services/health.html",
++    },
++    { title: "CBC News", url: "https://www.cbc.ca/news" },
++    {
++      title: "Canada Benefits Finder",
++      url: "https://www.canada.ca/en/services/benefits/finder.html",
++    },
++    {
++      title: "BC Services A-Z",
++      url: "https://www2.gov.bc.ca/gov/content/home/services-a-z",
++    },
++  ],
++
++  async _ensureCanadianServicesBookmarks() {
++    // distribution.ini's own bookmark import runs later, asynchronously,
++    // from a separate startup path (PlacesBrowserStartup.sys.mjs) that
++    // isn't awaited here. On a genuinely new profile it's the authoritative
++    // (and race-free, since it owns folder creation) way these bookmarks
++    // get created, so defer to it entirely rather than risk this code and
++    // that import both deciding the folder doesn't exist yet and each
++    // creating one. Mirrors distribution.sys.mjs's own newProfile check.
++    if (!Services.prefs.prefHasUserValue("browser.migration.version")) {
++      return;
++    }
++    try {
++      let db = await lazy.PlacesUtils.promiseDBConnection();
++      let rows = await db.executeCached(
++        `SELECT b.guid FROM moz_bookmarks b
++         JOIN moz_bookmarks p ON b.parent = p.id
++         WHERE p.guid = :toolbarGuid AND b.title = :title AND b.type = :folderType
++         LIMIT 1`,
++        {
++          toolbarGuid: lazy.PlacesUtils.bookmarks.toolbarGuid,
++          title: this.CANADAFOX_BOOKMARKS_FOLDER_TITLE,
++          folderType: lazy.PlacesUtils.bookmarks.TYPE_FOLDER,
++        }
++      );
++
++      let folderGuid;
++      if (rows.length) {
++        folderGuid = rows[0].getResultByName("guid");
++      } else {
++        let folder = await lazy.PlacesUtils.bookmarks.insert({
++          type: lazy.PlacesUtils.bookmarks.TYPE_FOLDER,
++          parentGuid: lazy.PlacesUtils.bookmarks.toolbarGuid,
++          title: this.CANADAFOX_BOOKMARKS_FOLDER_TITLE,
++        });
++        folderGuid = folder.guid;
++      }
++
++      for (let { title, url } of this.CANADAFOX_BOOKMARKS) {
++        if (await lazy.PlacesUtils.bookmarks.fetch({ url })) {
++          continue;
++        }
++        await lazy.PlacesUtils.bookmarks.insert({
++          parentGuid: folderGuid,
++          title,
++          url,
++        });
++      }
++    } catch (ex) {
++      console.error(
++        "CanadaFox: failed to ensure Canadian Services bookmarks",
++        ex
++      );
++    }
++  },
++
+   _checkForOldBuildUpdates() {
+     // check for update if our build is old
+     if (
+@@ -881,12 +971,16 @@ BrowserGlue.prototype = {
+   // fires only once per profile, so it cannot express "always there until
+   // dismissed", and having it open the page too would duplicate this one.
+   //
+-  // Creation is gated on our own pref rather than "is the tab already
+-  // open?", because at every startup hook the session-restored tabs exist
+-  // but have not loaded yet -- their browsers still report about:blank, so
+-  // a URL check would always miss and add a duplicate on every launch.
++  // Existence is checked with SessionStore.getTabState rather than a
++  // "did we already create it" pref: an earlier version used such a flag,
++  // and it meant the tab could never come back once anything other than a
++  // genuine user close removed it (a crash, a killed process, a session
++  // restore that dropped it) -- exactly the "always there" guarantee this
++  // is supposed to provide, broken by the one thing meant to protect it.
++  // getTabState still works on a not-yet-loaded restored tab (its browser
++  // reports about:blank until then), which is what a plain
++  // linkedBrowser.currentURI check cannot see.
+   PREF_WELCOME_TAB_URL: "canadafox.welcomeTab.url",
+-  PREF_WELCOME_TAB_CREATED: "canadafox.welcomeTab.created",
+   PREF_WELCOME_TAB_DISMISSED: "canadafox.welcomeTab.dismissed",
+ 
+   _maybeShowWelcomeTab() {
+@@ -907,10 +1001,21 @@ BrowserGlue.prototype = {
+       return;
+     }
+ 
+-    if (!Services.prefs.getBoolPref(this.PREF_WELCOME_TAB_CREATED, false)) {
++    let alreadyPresent = win.gBrowser.tabs.some(tab => {
++      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
++        return true;
++      }
++      try {
++        let state = JSON.parse(lazy.SessionStore.getTabState(tab));
++        return state.entries?.[state.index - 1]?.url == welcomeURL;
++      } catch (ex) {
++        return false;
++      }
++    });
++
++    if (!alreadyPresent) {
+       let tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
+       win.gBrowser.pinTab(tab);
+-      Services.prefs.setBoolPref(this.PREF_WELCOME_TAB_CREATED, true);
+     }
+ 
+     // Matching on the URL at close time rather than holding a reference to

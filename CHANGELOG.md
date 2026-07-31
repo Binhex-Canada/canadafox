@@ -3,9 +3,25 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.0.3] - 2026-07-30
+## [0.0.3a / 0.0.3.1] - 2026-07-30
 
 ### Added
+- (0.0.3a) Fixed the Canadian Services bookmarks folder and the welcome
+  tab both silently going stale on existing profiles, caused by two
+  different "did this already run" one-shot flags that never accounted
+  for the thing they gated disappearing for reasons other than genuine
+  completion: distribution.ini's bookmark import only ever runs once per
+  profile ever, so a profile that already ran it before the Benefits
+  Finder/BC Services entries were added could never receive them; and the
+  welcome tab's own "already created" pref meant it could never come back
+  once removed by anything other than the user closing it (a crash, a
+  killed test process, mid-session-restore). Both are now self-healing on
+  every startup instead: bookmarks are topped up by URL, and the welcome
+  tab is checked for with SessionStore.getTabState (which, unlike a plain
+  URL check, still works on a not-yet-loaded restored tab). Caught by
+  testing directly against a real, previously-used profile rather than
+  a fresh one -- every prior verification this cycle used a fresh
+  profile, which never exercises the one-shot-flag path at all.
 - **Address-bar keyword shortcuts** for the Canadian Services bookmarks:
   type `cra`, `service`, `health`, or `cbc` and hit enter instead of
   navigating there manually.
