@@ -1,0 +1,39 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index e171ba8625..226caa7a54 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -1001,23 +1001,29 @@ BrowserGlue.prototype = {
+       return;
+     }
+ 
+-    let alreadyPresent = win.gBrowser.tabs.some(tab => {
+-      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
++    let tab = win.gBrowser.tabs.find(t => {
++      if (t.linkedBrowser?.currentURI?.spec == welcomeURL) {
+         return true;
+       }
+       try {
+-        let state = JSON.parse(lazy.SessionStore.getTabState(tab));
++        let state = JSON.parse(lazy.SessionStore.getTabState(t));
+         return state.entries?.[state.index - 1]?.url == welcomeURL;
+       } catch (ex) {
+         return false;
+       }
+     });
+ 
+-    if (!alreadyPresent) {
+-      let tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
++    if (!tab) {
++      tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
+       win.gBrowser.pinTab(tab);
+     }
+ 
++    // Shown in the foreground rather than left pinned in the background:
++    // otherwise startup shows whatever tab session restore happened to pick
++    // (often a blank-looking about:home), with this one just sitting in the
++    // tab strip as an unselected pinned icon.
++    win.gBrowser.selectedTab = tab;
++
+     // Matching on the URL at close time rather than holding a reference to
+     // a specific tab: by the time a tab is closed it has always loaded, so
+     // this also covers the restored copy we never had a handle on.

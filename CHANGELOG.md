@@ -3,6 +3,23 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+- The welcome/quote tab is now shown in the foreground on every startup,
+  instead of pinned in the background while some other tab (often a
+  blank-looking `about:home`) is shown up front. Sticks even if a
+  different tab was selected when the browser last closed.
+
+### Fixed
+- The bookmarks toolbar could get permanently forced to "never show" by a
+  one-time Firefox profile-data migration (`ProfileDataUpgrader`) reacting
+  to old, pre-CanadaFox profile state, silently overriding our "always
+  show" default with a persisted user pref. Not a CanadaFox code bug as
+  such -- the migration is stock Firefox behavior -- but worth knowing
+  about if this resurfaces: clearing the
+  `browser.toolbars.bookmarks.visibility` user pref restores our default.
+
 ## [0.0.3a / 0.0.3.1] - 2026-07-30
 
 ### Added
