@@ -1,8 +1,8 @@
-diff --git a/browser/components/urlbar/content/UrlbarChildController.mjs b/browser/components/urlbar/content/UrlbarChildController.mjs
-index df5397176e..06412434b4 100644
---- a/browser/components/urlbar/content/UrlbarChildController.mjs
-+++ b/browser/components/urlbar/content/UrlbarChildController.mjs
-@@ -743,6 +743,15 @@ export class UrlbarChildController {
+diff --git a/browser/components/urlbar/content/UrlbarInput.mjs b/browser/components/urlbar/content/UrlbarInput.mjs
+index 23a4e5c9be..fb331c8b13 100644
+--- a/browser/components/urlbar/content/UrlbarInput.mjs
++++ b/browser/components/urlbar/content/UrlbarInput.mjs
+@@ -4459,6 +4459,15 @@ ${
      ) {
        where = "current";
      }

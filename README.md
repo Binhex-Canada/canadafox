@@ -37,9 +37,14 @@ scripts/run.sh            # run the built browser
 | | |
 |---|---|
 | CanadaFox version | `0.0.3.1` ("0.0.3a") |
-| Based on | Firefox `155.0a1` |
-| Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox) @ `878b64a4c024` (2026-07-30) |
-| Patches applied | 30 (see `patches/`) |
+| Based on | Firefox `153.0.3` (Release channel) |
+| Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `1d94c318b8fd` (2026-08-01) |
+| Patches applied | 31 (see `patches/`) |
+
+Note: CanadaFox tracks Firefox's **Release** channel, not Nightly — the
+build vetted and shipped to real users every ~4 weeks, rather than daily,
+unstable, experimental snapshots. Nobody should run a daily browser as
+their main one. `scripts/fetch.sh` pulls the `release` branch.
 
 Note: Safe Browsing (phishing/malware warnings) is left on, at stock
 Firefox behavior — it does query Google, unlike everything else this

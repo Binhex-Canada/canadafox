@@ -6,6 +6,13 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- CanadaFox now tracks Firefox's **Release** channel instead of Nightly.
+  Nightly is a daily, unstable, experimental build never meant to be
+  anyone's main browser; Release is the same code real Firefox users run,
+  vetted and shipped roughly every 4 weeks. Rebased onto Firefox `153.0.3`
+  (from Nightly `155.0a1`); all 31 patches carried forward with 100% of
+  existing features preserved and re-verified. `scripts/fetch.sh` now
+  pulls the `release` branch.
 - The welcome/quote tab is now shown in the foreground on every startup,
   instead of pinned in the background while some other tab (often a
   blank-looking `about:home`) is shown up front. Sticks even if a

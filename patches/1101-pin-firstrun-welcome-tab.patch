@@ -1,8 +1,8 @@
 diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
-index 5425a9883a..47376b0e3b 100644
+index 97dee13c12..c18c5e2932 100644
 --- a/browser/components/BrowserGlue.sys.mjs
 +++ b/browser/components/BrowserGlue.sys.mjs
-@@ -813,6 +813,69 @@ BrowserGlue.prototype = {
+@@ -801,6 +801,69 @@ BrowserGlue.prototype = {
      this._firstWindowTelemetry(aWindow);
    },
  
@@ -72,12 +72,12 @@ index 5425a9883a..47376b0e3b 100644
    _maybeOfferProfileReset() {
      // Offer to reset a user's profile if it hasn't been used for 60 days.
      const OFFER_PROFILE_RESET_INTERVAL_MS = 60 * 24 * 60 * 60 * 1000;
-@@ -938,6 +1001,8 @@ BrowserGlue.prototype = {
+@@ -926,6 +989,8 @@ BrowserGlue.prototype = {
      }
      this._windowsWereRestored = true;
  
 +    this._maybeShowWelcomeTab();
 +
-     lazy.PreonboardingSplash.maybeShowStartupSplash();
      lazy.BrowserUsageTelemetry.init();
      lazy.SearchSERPTelemetry.init();
+ 
