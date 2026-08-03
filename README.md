@@ -36,7 +36,7 @@ scripts/run.sh            # run the built browser
 
 | | |
 |---|---|
-| CanadaFox version | `0.0.3.1` ("0.0.3a") |
+| CanadaFox version | `0.0.3.5` |
 | Based on | Firefox `153.0.3` (Release channel) |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `1d94c318b8fd` (2026-08-01) |
 | Patches applied | 31 (see `patches/`) |

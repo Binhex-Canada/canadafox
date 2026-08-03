@@ -48,16 +48,16 @@ index 346c3bdb50..494bef8000 100644
 +brandShortName=CanadaFox
 +brandFullName=CanadaFox
 diff --git a/browser/config/version.txt b/browser/config/version.txt
-index 7458663953..2388cca74e 100644
+index 7458663953..b39aac81ef 100644
 --- a/browser/config/version.txt
 +++ b/browser/config/version.txt
 @@ -1 +1 @@
 -153.0.3
-+0.0.3.1
++0.0.3.5
 diff --git a/browser/config/version_display.txt b/browser/config/version_display.txt
-index 7458663953..2388cca74e 100644
+index 7458663953..b39aac81ef 100644
 --- a/browser/config/version_display.txt
 +++ b/browser/config/version_display.txt
 @@ -1 +1 @@
 -153.0.3
-+0.0.3.1
++0.0.3.5

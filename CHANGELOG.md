@@ -3,7 +3,7 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.0.3.5] - 2026-08-02
 
 ### Changed
 - CanadaFox now tracks Firefox's **Release** channel instead of Nightly.
