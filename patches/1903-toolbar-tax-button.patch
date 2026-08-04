@@ -2,9 +2,9 @@ diff --git a/browser/base/content/navigator-toolbox.inc.xhtml b/browser/base/con
 index 1749455be4..340aa10aa2 100644
 --- a/browser/base/content/navigator-toolbox.inc.xhtml
 +++ b/browser/base/content/navigator-toolbox.inc.xhtml
-@@ -545,6 +545,11 @@
-                      class="toolbarbutton-1"
-                      data-l10n-id="canadafox-toolbar-flag-button"/>
+@@ -540,6 +540,11 @@
+                      consumeanchor="PanelUI-button"
+                      data-l10n-id="appmenu-menu-button-closed2"/>
      </toolbaritem>
 +    <toolbaritem id="canadafox-tax-button" removable="false" overflows="false">
 +      <toolbarbutton id="canadafox-tax-button-inner"
@@ -188,9 +188,9 @@ diff --git a/browser/locales/en-US/browser/browser.ftl b/browser/locales/en-US/b
 index 1ac6ea0ec7..682430adbc 100644
 --- a/browser/locales/en-US/browser/browser.ftl
 +++ b/browser/locales/en-US/browser/browser.ftl
-@@ -1283,6 +1283,16 @@ navbar-overflow-2 =
- canadafox-toolbar-flag-button =
-     .tooltiptext = CanadaFox
+@@ -1280,6 +1280,16 @@
+ navbar-overflow-2 =
+     .tooltiptext = More tools
  
 +canadafox-toolbar-tax-button =
 +    .tooltiptext = Canadian sales tax calculator
@@ -209,12 +209,14 @@ diff --git a/browser/themes/shared/toolbarbutton-icons.css b/browser/themes/shar
 index 63d4f52ac4..8cc459c311 100644
 --- a/browser/themes/shared/toolbarbutton-icons.css
 +++ b/browser/themes/shared/toolbarbutton-icons.css
-@@ -192,6 +192,12 @@
-   list-style-image: url("chrome://branding/content/canada-flag-color.svg");
+@@ -184,7 +184,14 @@
+ #unified-extensions-button {
+   list-style-image: url("chrome://mozapps/skin/extensions/extension.svg");
  }
  
-+/* CanadaFox: hard-coded, full-color, not tinted by the theme -- same
-+   reasoning as the flag button above. */
++/* CanadaFox: hard-coded, full-color rather than tinted by the theme -- the
++   icon carries its own colours, so -moz-context-properties has nothing to
++   override. */
 +#canadafox-tax-button-inner {
 +  list-style-image: url("chrome://branding/content/canada-tax.svg");
 +}
@@ -278,10 +280,9 @@ diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unoff
 index 5a6374efab..099d1a7ac1 100644
 --- a/browser/branding/unofficial/content/jar.mn
 +++ b/browser/branding/unofficial/content/jar.mn
-@@ -22,6 +22,7 @@ browser.jar:
+@@ -22,5 +22,6 @@ browser.jar:
    content/branding/aboutDialog.css
    content/branding/canada-flag.svg
-   content/branding/canada-flag-color.svg
 +  content/branding/canada-tax.svg
    content/branding/canada-newtab.html
    content/branding/canada-welcome.html

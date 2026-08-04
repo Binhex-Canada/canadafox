@@ -18,6 +18,13 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   treat it as an estimate rather than a guarantee of what any specific
   purchase will charge.
 
+### Removed
+- The decorative full-colour Canadian flag toolbar button. It did nothing
+  when clicked, and sitting immediately beside the new tax-calculator
+  button it read as though it were an action, which was more confusing
+  than decorative. The Canadian flag icon in the Settings sidebar (which
+  does navigate somewhere) is unaffected.
+
 ## [0.0.3.5] - 2026-08-02
 
 ### Changed
