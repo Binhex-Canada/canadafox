@@ -40,8 +40,8 @@ scripts/test-release.py   # smoke-test a packaged build over Marionette
 | | |
 |---|---|
 | CanadaFox version | `0.0.3.6` |
-| Based on | Firefox `153.0.3` (Release channel) |
-| Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `1d94c318b8fd` (2026-08-01) |
+| Based on | Firefox `153.0.4` (Release channel) |
+| Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `01036b0ee0b3` (2026-08-04) |
 | Patches applied | 34 (see `patches/`) |
 
 Note: CanadaFox tracks Firefox's **Release** channel, not Nightly — the

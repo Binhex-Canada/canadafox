@@ -44,6 +44,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   pull in `--enable-official-branding`, `MOZILLA_OFFICIAL=1`, and Google
   Safe Browsing/location-service API keys CanadaFox doesn't have and
   doesn't want tied in.
+- Rebased onto Firefox `153.0.4` (from `153.0.3`), a routine upstream
+  point release. Caught by the new `patches-apply` GitHub Actions
+  workflow, which fetches current Firefox Release and confirms every
+  patch still applies on every push -- this is exactly the drift it
+  exists to catch. Only `browser/config/version.txt`'s content changed
+  underneath the patch; nothing else needed touching.
 
 ### Removed
 - The decorative full-colour Canadian flag toolbar button. It did nothing
