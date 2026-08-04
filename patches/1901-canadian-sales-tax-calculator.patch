@@ -1,0 +1,289 @@
+diff --git a/browser/components/urlbar/UrlbarPrefs.sys.mjs b/browser/components/urlbar/UrlbarPrefs.sys.mjs
+index 51b33db779..82f85c02ef 100644
+--- a/browser/components/urlbar/UrlbarPrefs.sys.mjs
++++ b/browser/components/urlbar/UrlbarPrefs.sys.mjs
+@@ -92,6 +92,12 @@ const PREF_URLBAR_DEFAULTS = /** @type {PreferenceDefinition[]} */ ([
+   // 30 days since user input it as the default.
+   ["autoFill.adaptiveHistory.useCountThreshold", [0.47, "float"]],
+ 
++  // CanadaFox: whether the Canadian sales tax quick-answer is enabled.
++  ["canadianTax.enabled", true],
++
++  // CanadaFox: the index where we show the Canadian sales tax result.
++  ["canadianTax.suggestedIndex", 1],
++
+   // Feature gate pref for clipboard suggestions in the urlbar.
+   ["clipboard.featureGate", false],
+ 
+diff --git a/browser/components/urlbar/UrlbarProvidersManager.sys.mjs b/browser/components/urlbar/UrlbarProvidersManager.sys.mjs
+index d2e2415e6b..0de90d1574 100644
+--- a/browser/components/urlbar/UrlbarProvidersManager.sys.mjs
++++ b/browser/components/urlbar/UrlbarProvidersManager.sys.mjs
+@@ -81,6 +81,12 @@ var localProviderModules = [
+       "moz-src:///browser/components/urlbar/UrlbarProviderCalculator.sys.mjs",
+     supportedSAPs: ["searchbar", "urlbar"],
+   },
++  {
++    name: "UrlbarProviderCanadianTax",
++    module:
++      "moz-src:///browser/components/urlbar/UrlbarProviderCanadianTax.sys.mjs",
++    supportedSAPs: ["searchbar", "urlbar"],
++  },
+   {
+     name: "UrlbarProviderAiChat",
+     module: "moz-src:///browser/components/urlbar/UrlbarProviderAiChat.sys.mjs",
+diff --git a/browser/components/urlbar/UrlbarUtils.sys.mjs b/browser/components/urlbar/UrlbarUtils.sys.mjs
+index cf37a60cd9..b86414226b 100644
+--- a/browser/components/urlbar/UrlbarUtils.sys.mjs
++++ b/browser/components/urlbar/UrlbarUtils.sys.mjs
+@@ -2138,6 +2138,8 @@ export var UrlbarUtils = {
+             return "tab_to_search";
+           case "UrlbarProviderUnitConversion":
+             return "unit";
++          case "UrlbarProviderCanadianTax":
++            return "canadian_tax";
+           case "UrlbarProviderQuickSuggestContextualOptIn":
+             return "fxsuggest_data_sharing_opt_in";
+           case "UrlbarProviderGlobalActions":
+diff --git a/browser/themes/shared/urlbar/dynamic-results.css b/browser/themes/shared/urlbar/dynamic-results.css
+index cbdff7f60b..9d43a309c4 100644
+--- a/browser/themes/shared/urlbar/dynamic-results.css
++++ b/browser/themes/shared/urlbar/dynamic-results.css
+@@ -157,7 +157,8 @@
+ }
+ 
+ .urlbarView-dynamic-calculator-action,
+-.urlbarView-dynamic-unitConversion-action {
++.urlbarView-dynamic-unitConversion-action,
++.urlbarView-dynamic-canadianTax-action {
+   font-size: var(--urlbarView-small-font-size);
+   font-weight: normal;
+ 
+diff --git a/browser/components/urlbar/UrlbarProviderCanadianTax.sys.mjs b/browser/components/urlbar/UrlbarProviderCanadianTax.sys.mjs
+new file mode 100644
+index 0000000000..760fe58bfc
+--- /dev/null
++++ b/browser/components/urlbar/UrlbarProviderCanadianTax.sys.mjs
+@@ -0,0 +1,210 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++/**
++ * CanadaFox: a quick-answer address-bar provider for Canadian sales tax.
++ */
++
++import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
++
++import {
++  UrlbarProvider,
++  UrlbarUtils,
++} from "moz-src:///browser/components/urlbar/UrlbarUtils.sys.mjs";
++
++const lazy = {};
++
++ChromeUtils.defineESModuleGetters(lazy, {
++  UrlbarPrefs: "moz-src:///browser/components/urlbar/UrlbarPrefs.sys.mjs",
++  UrlbarResult: "chrome://browser/content/urlbar/UrlbarResult.mjs",
++});
++
++XPCOMUtils.defineLazyServiceGetter(
++  lazy,
++  "ClipboardHelper",
++  "@mozilla.org/widget/clipboardhelper;1",
++  Ci.nsIClipboardHelper
++);
++
++// General statutory sales tax rates by province/territory, as published by
++// the CRA and provincial revenue agencies. These are the standard rates --
++// some goods and services (basic groceries, prescription drugs, children's
++// clothing in some provinces, etc.) are zero-rated or exempt, so this is an
++// estimate of the common case, not a guarantee of what any specific
++// purchase will charge.
++const PROVINCE_TAX = {
++  ab: { name: "Alberta", gst: 5, pst: 0, hst: 0 },
++  bc: { name: "British Columbia", gst: 5, pst: 7, hst: 0 },
++  mb: { name: "Manitoba", gst: 5, pst: 7, hst: 0 },
++  nb: { name: "New Brunswick", gst: 0, pst: 0, hst: 15 },
++  nl: { name: "Newfoundland and Labrador", gst: 0, pst: 0, hst: 15 },
++  ns: { name: "Nova Scotia", gst: 0, pst: 0, hst: 14 },
++  nt: { name: "Northwest Territories", gst: 5, pst: 0, hst: 0 },
++  nu: { name: "Nunavut", gst: 5, pst: 0, hst: 0 },
++  on: { name: "Ontario", gst: 0, pst: 0, hst: 13 },
++  pe: { name: "Prince Edward Island", gst: 0, pst: 0, hst: 15 },
++  qc: { name: "Quebec", gst: 5, pst: 9.975, hst: 0 },
++  sk: { name: "Saskatchewan", gst: 5, pst: 6, hst: 0 },
++  yt: { name: "Yukon", gst: 5, pst: 0, hst: 0 },
++};
++
++// A handful of common full-name spellings, mapped to the codes above, so
++// "tax ontario" works as well as "tax on".
++const PROVINCE_ALIASES = {
++  alberta: "ab",
++  "british columbia": "bc",
++  manitoba: "mb",
++  "new brunswick": "nb",
++  newfoundland: "nl",
++  "newfoundland and labrador": "nl",
++  "nova scotia": "ns",
++  "northwest territories": "nt",
++  nunavut: "nu",
++  ontario: "on",
++  "prince edward island": "pe",
++  quebec: "qc",
++  saskatchewan: "sk",
++  yukon: "yt",
++};
++
++// Matches e.g. "50 tax on", "$49.99 tax bc", "12.5 tax british columbia".
++const MATCH_REGEX = /^\$?\s*(\d+(?:\.\d{1,2})?)\s+tax\s+([a-z ]{2,25})$/i;
++
++function lookupProvince(raw) {
++  const key = raw.trim().toLowerCase();
++  return PROVINCE_TAX[key] ? key : (PROVINCE_ALIASES[key] ?? null);
++}
++
++function formatCurrency(amount) {
++  return amount.toLocaleString(undefined, {
++    minimumFractionDigits: 2,
++    maximumFractionDigits: 2,
++  });
++}
++
++function computeResult(amount, provinceCode) {
++  const { name, gst, pst, hst } = PROVINCE_TAX[provinceCode];
++  const total = amount + (amount * (gst + pst + hst)) / 100;
++
++  let breakdown;
++  if (hst) {
++    breakdown = `${hst}% HST`;
++  } else if (pst) {
++    breakdown = `${gst}% GST + ${pst}% PST`;
++  } else {
++    breakdown = `${gst}% GST`;
++  }
++
++  return `$${formatCurrency(amount)} + ${breakdown} (${name}) = $${formatCurrency(total)}`;
++}
++
++const DYNAMIC_RESULT_TYPE = "canadianTax";
++const VIEW_TEMPLATE = {
++  attributes: {
++    selectable: true,
++  },
++  children: [
++    {
++      name: "content",
++      tag: "span",
++      classList: ["urlbarView-no-wrap"],
++      children: [
++        {
++          name: "icon",
++          tag: "img",
++          classList: ["urlbarView-favicon"],
++          attributes: {
++            src: "chrome://global/skin/icons/edit-copy.svg",
++          },
++        },
++        {
++          name: "output",
++          tag: "strong",
++          attributes: {
++            dir: "ltr",
++          },
++        },
++        {
++          name: "action",
++          tag: "span",
++        },
++      ],
++    },
++  ],
++};
++
++/**
++ * Provides a quick-answer Canadian sales tax calculator. Typing
++ * "<amount> tax <province>" (e.g. "50 tax on") shows the GST/PST/HST
++ * breakdown and total, computed entirely locally -- no network request.
++ */
++export class UrlbarProviderCanadianTax extends UrlbarProvider {
++  constructor() {
++    super();
++  }
++
++  get type() {
++    return UrlbarUtils.PROVIDER_TYPE.PROFILE;
++  }
++
++  async isActive({ searchString }) {
++    if (!lazy.UrlbarPrefs.get("canadianTax.enabled")) {
++      this._activeResult = null;
++      return false;
++    }
++
++    const match = MATCH_REGEX.exec(searchString.trim());
++    if (!match) {
++      this._activeResult = null;
++      return false;
++    }
++
++    const amount = parseFloat(match[1]);
++    const provinceCode = lookupProvince(match[2]);
++    if (!provinceCode || !Number.isFinite(amount) || amount <= 0) {
++      this._activeResult = null;
++      return false;
++    }
++
++    this._activeResult = computeResult(amount, provinceCode);
++    return true;
++  }
++
++  getViewTemplate(_result) {
++    return VIEW_TEMPLATE;
++  }
++
++  getViewUpdate(result) {
++    return {
++      output: {
++        textContent: result.payload.output,
++      },
++      action: {
++        l10n: { id: "urlbar-result-action-copy-to-clipboard" },
++      },
++    };
++  }
++
++  startQuery(queryContext, addCallback) {
++    const result = new lazy.UrlbarResult({
++      type: UrlbarUtils.RESULT_TYPE.DYNAMIC,
++      source: UrlbarUtils.RESULT_SOURCE.OTHER_LOCAL,
++      suggestedIndex: lazy.UrlbarPrefs.get("canadianTax.suggestedIndex"),
++      payload: {
++        dynamicType: DYNAMIC_RESULT_TYPE,
++        output: this._activeResult,
++        input: queryContext.searchString,
++      },
++    });
++    addCallback(this, result);
++  }
++
++  onEngagement(queryContext, controller, details) {
++    const { element } = details;
++    const { textContent } = element.querySelector(
++      ".urlbarView-dynamic-canadianTax-output"
++    );
++    lazy.ClipboardHelper.copyString(textContent);
++  }
++}
+diff --git a/browser/components/urlbar/moz.build b/browser/components/urlbar/moz.build
+index bc16c04662..9e2cb8c1b0 100644
+--- a/browser/components/urlbar/moz.build
++++ b/browser/components/urlbar/moz.build
+@@ -28,6 +28,7 @@ MOZ_SRC_FILES += [
+     "UrlbarProviderAutofill.sys.mjs",
+     "UrlbarProviderBookmarkKeywords.sys.mjs",
+     "UrlbarProviderCalculator.sys.mjs",
++    "UrlbarProviderCanadianTax.sys.mjs",
+     "UrlbarProviderClipboard.sys.mjs",
+     "UrlbarProviderGlobalActions.sys.mjs",
+     "UrlbarProviderHeuristicFallback.sys.mjs",

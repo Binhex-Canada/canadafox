@@ -367,8 +367,7 @@ diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unoff
 index 05a9f83a17..5a6374efab 100644
 --- a/browser/branding/unofficial/content/jar.mn
 +++ b/browser/branding/unofficial/content/jar.mn
-@@ -24,3 +24,4 @@ browser.jar:
-   content/branding/canada-flag-color.svg
+@@ -24,2 +24,3 @@ browser.jar:
    content/branding/canada-newtab.html
    content/branding/canada-welcome.html
 +  content/branding/dbip-country.bin

@@ -1,0 +1,185 @@
+diff --git a/browser/branding/unofficial/content/canada-newtab.html b/browser/branding/unofficial/content/canada-newtab.html
+index 0a15512b52..dc72eed615 100644
+--- a/browser/branding/unofficial/content/canada-newtab.html
++++ b/browser/branding/unofficial/content/canada-newtab.html
+@@ -45,6 +45,73 @@
+     line-height: 1.7;
+     color: rgba(255, 255, 255, 0.7);
+   }
++  section.calc {
++    margin-top: 40px;
++    padding-top: 32px;
++    border-top: 1px solid rgba(255, 255, 255, 0.15);
++    text-align: left;
++  }
++  section.calc h2 {
++    margin: 0 0 16px;
++    font-size: 13px;
++    font-weight: 700;
++    letter-spacing: 0.02em;
++    text-transform: uppercase;
++    color: rgba(255, 255, 255, 0.7);
++    text-align: center;
++  }
++  .calc-row {
++    display: flex;
++    gap: 12px;
++    margin-bottom: 12px;
++  }
++  .calc-row > * {
++    flex: 1;
++    min-width: 0;
++  }
++  .calc-row input,
++  .calc-row select {
++    width: 100%;
++    box-sizing: border-box;
++    padding: 10px 12px;
++    font-size: 15px;
++    border-radius: 8px;
++    border: 1px solid rgba(255, 255, 255, 0.25);
++    background: rgba(255, 255, 255, 0.06);
++    color: #fff;
++  }
++  .calc-row input::placeholder {
++    color: rgba(255, 255, 255, 0.4);
++  }
++  p.calc-result {
++    margin: 4px 0 16px;
++    font-size: 17px;
++    font-weight: 600;
++    text-align: center;
++    min-height: 1.4em;
++  }
++  #calc-copy {
++    display: block;
++    margin: 0 auto;
++    padding: 8px 20px;
++    font-size: 14px;
++    font-weight: 600;
++    border-radius: 8px;
++    border: none;
++    background: #d64550;
++    color: #fff;
++    cursor: pointer;
++  }
++  #calc-copy:hover {
++    background: #c33742;
++  }
++  p.calc-disclaimer {
++    margin: 16px 0 0;
++    font-size: 12px;
++    line-height: 1.5;
++    text-align: center;
++    color: rgba(255, 255, 255, 0.5);
++  }
+ </style>
+ </head>
+ <body>
+@@ -52,6 +119,17 @@
+   <h1>CanadaFox</h1>
+   <p class="fact" id="fact"></p>
+   <p class="label" id="label"></p>
++  <section class="calc">
++    <h2>Sales Tax Calculator</h2>
++    <div class="calc-row">
++      <input type="number" id="calc-amount" placeholder="Amount" min="0" step="0.01" value="100">
++      <select id="calc-province"></select>
++    </div>
++    <p class="calc-result" id="calc-result"></p>
++    <button type="button" id="calc-copy">Copy total</button>
++    <p class="calc-disclaimer">General statutory rates; some goods and
++      services are zero-rated or exempt, so treat this as an estimate.</p>
++  </section>
+ </main>
+ <script>
+   var TRIVIA = [
+@@ -119,6 +197,88 @@
+ 
+   document.getElementById("fact").textContent = fact;
+   document.getElementById("label").textContent = label;
++
++  // General statutory sales tax rates by province/territory. Kept in sync
++  // by hand with UrlbarProviderCanadianTax.sys.mjs's copy of the same table.
++  var PROVINCE_TAX = [
++    ["ab", "Alberta", 5, 0, 0],
++    ["bc", "British Columbia", 5, 7, 0],
++    ["mb", "Manitoba", 5, 7, 0],
++    ["nb", "New Brunswick", 0, 0, 15],
++    ["nl", "Newfoundland and Labrador", 0, 0, 15],
++    ["ns", "Nova Scotia", 0, 0, 14],
++    ["nt", "Northwest Territories", 5, 0, 0],
++    ["nu", "Nunavut", 5, 0, 0],
++    ["on", "Ontario", 0, 0, 13],
++    ["pe", "Prince Edward Island", 0, 0, 15],
++    ["qc", "Quebec", 5, 9.975, 0],
++    ["sk", "Saskatchewan", 5, 6, 0],
++    ["yt", "Yukon", 5, 0, 0]
++  ];
++
++  var provinceSelect = document.getElementById("calc-province");
++  PROVINCE_TAX.forEach(function (row) {
++    var option = document.createElement("option");
++    option.value = row[0];
++    option.textContent = row[1];
++    provinceSelect.appendChild(option);
++  });
++  provinceSelect.value = "on";
++
++  function formatCurrency(n) {
++    return n.toLocaleString(undefined, {
++      minimumFractionDigits: 2,
++      maximumFractionDigits: 2
++    });
++  }
++
++  var lastResultText = "";
++
++  function updateCalc() {
++    var amountInput = document.getElementById("calc-amount");
++    var amount = parseFloat(amountInput.value);
++    var resultEl = document.getElementById("calc-result");
++    if (!isFinite(amount) || amount <= 0) {
++      resultEl.textContent = "";
++      lastResultText = "";
++      return;
++    }
++
++    var row = PROVINCE_TAX.filter(function (r) {
++      return r[0] === provinceSelect.value;
++    })[0];
++    var gst = row[2], pst = row[3], hst = row[4];
++    var total = amount + (amount * (gst + pst + hst)) / 100;
++
++    var breakdown;
++    if (hst) {
++      breakdown = hst + "% HST";
++    } else if (pst) {
++      breakdown = gst + "% GST + " + pst + "% PST";
++    } else {
++      breakdown = gst + "% GST";
++    }
++
++    lastResultText = "$" + formatCurrency(total);
++    resultEl.textContent = "$" + formatCurrency(amount) + " + " + breakdown + " = " + lastResultText;
++  }
++
++  document.getElementById("calc-amount").addEventListener("input", updateCalc);
++  provinceSelect.addEventListener("change", updateCalc);
++  document.getElementById("calc-copy").addEventListener("click", function () {
++    if (!lastResultText) {
++      return;
++    }
++    navigator.clipboard.writeText(lastResultText.replace("$", ""));
++    var button = document.getElementById("calc-copy");
++    var original = button.textContent;
++    button.textContent = "Copied!";
++    setTimeout(function () {
++      button.textContent = original;
++    }, 1200);
++  });
++
++  updateCalc();
+ </script>
+ </body>
+ </html>
