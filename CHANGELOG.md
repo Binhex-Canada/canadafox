@@ -6,14 +6,17 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.0.3.6] - 2026-08-03
 
 ### Added
-- A Canadian sales tax calculator in the address bar. Type an amount
-  followed by "tax" and a province, e.g. `50 tax on` or `$49.99 tax bc`,
-  for an instant GST/HST/PST breakdown and total, with a one-click copy
-  action. Computed entirely locally from the standard published federal
-  and provincial rates -- no network request. These are general statutory
-  rates; some goods and services (basic groceries, prescription drugs,
-  etc.) are zero-rated or exempt, so treat it as an estimate rather than
-  a guarantee of what any specific purchase will charge.
+- A Canadian sales tax calculator, in three places for discoverability:
+  a green $ button in the toolbar (opens a small panel with an amount
+  field and province dropdown), a widget on every New Tab page, and a
+  power-user address-bar shortcut (type an amount followed by "tax" and
+  a province, e.g. `50 tax on` or `$49.99 tax bc`). All three compute
+  the same GST/HST/PST breakdown and total entirely locally from the
+  standard published federal and provincial rates -- no network request.
+  These are general statutory rates; some goods and services (basic
+  groceries, prescription drugs, etc.) are zero-rated or exempt, so
+  treat it as an estimate rather than a guarantee of what any specific
+  purchase will charge.
 
 ## [0.0.3.5] - 2026-08-02
 

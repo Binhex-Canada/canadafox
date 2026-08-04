@@ -39,7 +39,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.3.6` |
 | Based on | Firefox `153.0.3` (Release channel) |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `1d94c318b8fd` (2026-08-01) |
-| Patches applied | 32 (see `patches/`) |
+| Patches applied | 34 (see `patches/`) |
 
 Note: CanadaFox tracks Firefox's **Release** channel, not Nightly — the
 build vetted and shipped to real users every ~4 weeks, rather than daily,
@@ -87,12 +87,14 @@ Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
 Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,
 which is shown by default.
 
-Note: typing an amount followed by "tax" and a province in the address
-bar, e.g. `50 tax on` or `$49.99 tax bc`, shows an instant GST/HST/PST
-breakdown and total with a one-click copy action. Computed locally from
-the standard published rates -- no network request. General rates only;
-some goods and services are zero-rated or exempt, so treat it as an
-estimate.
+Note: a Canadian sales tax calculator is built in three ways: a green $
+toolbar button opens a small panel with an amount field and province
+dropdown; the same calculator appears on every New Tab page; and typing
+an amount followed by "tax" and a province in the address bar, e.g.
+`50 tax on` or `$49.99 tax bc`, shows the same result as a quick-answer
+row. All three compute locally from the standard published rates -- no
+network request. General rates only; some goods and services are
+zero-rated or exempt, so treat it as an estimate.
 
 Note: DNS-over-HTTPS is pointed at
 [CIRA Canadian Shield](https://www.cira.ca/en/canadian-shield/) (Protected

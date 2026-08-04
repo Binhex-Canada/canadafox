@@ -1,0 +1,301 @@
+diff --git a/browser/base/content/navigator-toolbox.inc.xhtml b/browser/base/content/navigator-toolbox.inc.xhtml
+index 1749455be4..340aa10aa2 100644
+--- a/browser/base/content/navigator-toolbox.inc.xhtml
++++ b/browser/base/content/navigator-toolbox.inc.xhtml
+@@ -545,6 +545,11 @@
+                      class="toolbarbutton-1"
+                      data-l10n-id="canadafox-toolbar-flag-button"/>
+     </toolbaritem>
++    <toolbaritem id="canadafox-tax-button" removable="false" overflows="false">
++      <toolbarbutton id="canadafox-tax-button-inner"
++                     class="toolbarbutton-1"
++                     data-l10n-id="canadafox-toolbar-tax-button"/>
++    </toolbaritem>
+     <hbox class="titlebar-spacer" type="post-tabs"/>
+ #include private-browsing-indicator.inc.xhtml
+     <toolbarbutton class="content-analysis-indicator toolbarbutton-1 content-analysis-indicator-icon"/>
+diff --git a/browser/base/content/main-popupset.inc.xhtml b/browser/base/content/main-popupset.inc.xhtml
+index 2338bac000..59c6bfa972 100644
+--- a/browser/base/content/main-popupset.inc.xhtml
++++ b/browser/base/content/main-popupset.inc.xhtml
+@@ -157,6 +157,28 @@
+   <tabgroup-menu id="tab-group-editor"></tabgroup-menu>
+   <tabnote-menu id="tab-note-menu"></tabnote-menu>
+ 
++  <panel id="canadafox-tax-panel"
++         class="panel-no-padding"
++         type="arrow"
++         orient="vertical"
++         noautofocus="true"
++         position="bottomright topright">
++    <vbox id="canadafox-tax-panel-body">
++      <html:h1 id="canadafox-tax-panel-title" data-l10n-id="canadafox-tax-panel-title"/>
++      <hbox id="canadafox-tax-panel-row">
++        <html:input id="canadafox-tax-amount"
++                    type="number"
++                    min="0"
++                    step="0.01"
++                    value="100"/>
++        <html:select id="canadafox-tax-province"/>
++      </hbox>
++      <html:p id="canadafox-tax-result"/>
++      <button id="canadafox-tax-copy" data-l10n-id="canadafox-tax-copy-button"/>
++      <html:p id="canadafox-tax-disclaimer" data-l10n-id="canadafox-tax-disclaimer"/>
++    </vbox>
++  </panel>
++
+   <!-- Starting point for sidebar tools overflow -->
+   <panel id="sidebar-tools-overflow"
+        class="panel-no-padding"
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+index c9859153df..129acf3c76 100644
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -5020,3 +5020,120 @@ var CanadaFoxServedFrom = {
+     });
+   },
+ };
++
++// CanadaFox: the toolbar sales-tax calculator panel. General statutory
++// rates by province/territory -- kept in sync by hand with the address-bar
++// UrlbarProviderCanadianTax.sys.mjs and canada-newtab.html copies of the
++// same table, since each lives in a different privilege/architecture
++// boundary that can't easily share a single module.
++var CanadaFoxTaxCalculator = {
++  PROVINCE_TAX: [
++    ["ab", "Alberta", 5, 0, 0],
++    ["bc", "British Columbia", 5, 7, 0],
++    ["mb", "Manitoba", 5, 7, 0],
++    ["nb", "New Brunswick", 0, 0, 15],
++    ["nl", "Newfoundland and Labrador", 0, 0, 15],
++    ["ns", "Nova Scotia", 0, 0, 14],
++    ["nt", "Northwest Territories", 5, 0, 0],
++    ["nu", "Nunavut", 5, 0, 0],
++    ["on", "Ontario", 0, 0, 13],
++    ["pe", "Prince Edward Island", 0, 0, 15],
++    ["qc", "Quebec", 5, 9.975, 0],
++    ["sk", "Saskatchewan", 5, 6, 0],
++    ["yt", "Yukon", 5, 0, 0],
++  ],
++
++  init() {
++    document
++      .getElementById("canadafox-tax-button-inner")
++      .addEventListener("click", event => this.togglePanel(event));
++  },
++
++  _initialized: false,
++
++  _initPanel() {
++    if (this._initialized) {
++      return;
++    }
++    this._initialized = true;
++
++    const province = document.getElementById("canadafox-tax-province");
++    for (const [code, name] of this.PROVINCE_TAX) {
++      const option = document.createElement("option");
++      option.value = code;
++      option.textContent = name;
++      province.appendChild(option);
++    }
++    province.value = "on";
++
++    document
++      .getElementById("canadafox-tax-amount")
++      .addEventListener("input", () => this._update());
++    province.addEventListener("change", () => this._update());
++    document
++      .getElementById("canadafox-tax-copy")
++      .addEventListener("command", () => this._copy());
++  },
++
++  _formatCurrency(n) {
++    return n.toLocaleString(undefined, {
++      minimumFractionDigits: 2,
++      maximumFractionDigits: 2,
++    });
++  },
++
++  _update() {
++    const amount = parseFloat(
++      document.getElementById("canadafox-tax-amount").value
++    );
++    const resultEl = document.getElementById("canadafox-tax-result");
++    if (!Number.isFinite(amount) || amount <= 0) {
++      resultEl.textContent = "";
++      this._lastTotal = "";
++      return;
++    }
++
++    const provinceCode = document.getElementById(
++      "canadafox-tax-province"
++    ).value;
++    const [, name, gst, pst, hst] = this.PROVINCE_TAX.find(
++      row => row[0] == provinceCode
++    );
++    const total = amount + (amount * (gst + pst + hst)) / 100;
++
++    let breakdown;
++    if (hst) {
++      breakdown = `${hst}% HST`;
++    } else if (pst) {
++      breakdown = `${gst}% GST + ${pst}% PST`;
++    } else {
++      breakdown = `${gst}% GST`;
++    }
++
++    this._lastTotal = this._formatCurrency(total);
++    resultEl.textContent = `$${this._formatCurrency(
++      amount
++    )} + ${breakdown} (${name}) = $${this._lastTotal}`;
++  },
++
++  _copy() {
++    if (!this._lastTotal) {
++      return;
++    }
++    Cc["@mozilla.org/widget/clipboardhelper;1"]
++      .getService(Ci.nsIClipboardHelper)
++      .copyString(this._lastTotal);
++  },
++
++  togglePanel(event) {
++    this._initPanel();
++    const panel = document.getElementById("canadafox-tax-panel");
++    if (panel.state == "open" || panel.state == "showing") {
++      panel.hidePopup();
++      return;
++    }
++    panel.openPopup(event.target, "bottomright topright");
++    this._update();
++    document.getElementById("canadafox-tax-amount").focus();
++  },
++};
+diff --git a/browser/base/content/browser-init.js b/browser/base/content/browser-init.js
+index 04a238db6b..66c0ad5667 100644
+--- a/browser/base/content/browser-init.js
++++ b/browser/base/content/browser-init.js
+@@ -480,6 +480,7 @@ var gBrowserInit = {
+     this._cancelDelayedStartup();
+ 
+     CanadaFoxServedFrom.init();
++    CanadaFoxTaxCalculator.init();
+ 
+     gBrowser.addEventListener(
+       "PermissionStateChange",
+diff --git a/browser/locales/en-US/browser/browser.ftl b/browser/locales/en-US/browser/browser.ftl
+index 1ac6ea0ec7..682430adbc 100644
+--- a/browser/locales/en-US/browser/browser.ftl
++++ b/browser/locales/en-US/browser/browser.ftl
+@@ -1283,6 +1283,16 @@ navbar-overflow-2 =
+ canadafox-toolbar-flag-button =
+     .tooltiptext = CanadaFox
+ 
++canadafox-toolbar-tax-button =
++    .tooltiptext = Canadian sales tax calculator
++
++canadafox-tax-panel-title = Sales Tax Calculator
++
++canadafox-tax-copy-button =
++    .label = Copy total
++
++canadafox-tax-disclaimer = General statutory rates; some goods and services are zero-rated or exempt, so treat this as an estimate.
++
+ # Variables:
+ #   $shortcut (String): keyboard shortcut to print the page
+ navbar-print =
+diff --git a/browser/themes/shared/toolbarbutton-icons.css b/browser/themes/shared/toolbarbutton-icons.css
+index 63d4f52ac4..8cc459c311 100644
+--- a/browser/themes/shared/toolbarbutton-icons.css
++++ b/browser/themes/shared/toolbarbutton-icons.css
+@@ -192,6 +192,12 @@
+   list-style-image: url("chrome://branding/content/canada-flag-color.svg");
+ }
+ 
++/* CanadaFox: hard-coded, full-color, not tinted by the theme -- same
++   reasoning as the flag button above. */
++#canadafox-tax-button-inner {
++  list-style-image: url("chrome://branding/content/canada-tax.svg");
++}
++
+ #reset-pbm-toolbar-button {
+   list-style-image: url("chrome://browser/skin/flame.svg");
+ }
+diff --git a/browser/themes/shared/customizableui/panelUI-shared.css b/browser/themes/shared/customizableui/panelUI-shared.css
+index 2c3d192d88..9f3d710bc2 100644
+--- a/browser/themes/shared/customizableui/panelUI-shared.css
++++ b/browser/themes/shared/customizableui/panelUI-shared.css
+@@ -2526,3 +2526,47 @@ radiogroup:focus-visible > .subviewradio[focused="true"] {
+ #PanelUI-ipprotection-locations {
+   max-height: 400px;
+ }
++
++#canadafox-tax-panel-body {
++  padding: 16px;
++  width: 260px;
++}
++
++#canadafox-tax-panel-title {
++  font-size: 13px;
++  font-weight: 600;
++  margin: 0 0 12px;
++}
++
++#canadafox-tax-panel-row {
++  display: flex;
++  gap: 8px;
++  margin-bottom: 10px;
++}
++
++#canadafox-tax-amount {
++  flex: 1;
++  min-width: 0;
++}
++
++#canadafox-tax-province {
++  flex: 1;
++  min-width: 0;
++}
++
++#canadafox-tax-result {
++  font-size: 14px;
++  font-weight: 600;
++  margin: 0 0 10px;
++  min-height: 1.4em;
++}
++
++#canadafox-tax-copy {
++  width: 100%;
++}
++
++#canadafox-tax-disclaimer {
++  font-size: 11px;
++  color: var(--text-color-deemphasized);
++  margin: 10px 0 0;
++}
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 5a6374efab..099d1a7ac1 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -22,6 +22,7 @@ browser.jar:
+   content/branding/aboutDialog.css
+   content/branding/canada-flag.svg
+   content/branding/canada-flag-color.svg
++  content/branding/canada-tax.svg
+   content/branding/canada-newtab.html
+   content/branding/canada-welcome.html
+   content/branding/dbip-country.bin
+diff --git a/browser/branding/unofficial/content/canada-tax.svg b/browser/branding/unofficial/content/canada-tax.svg
+new file mode 100644
+index 0000000000..a46d77d3bc
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-tax.svg
+@@ -0,0 +1,7 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
++  <circle cx="8" cy="8" r="7" fill="#2e7d46"/>
++  <path fill="#ffffff" d="M8.75 3.4v1.14c1.32.2 2.4 1.06 2.55 2.36h-1.53c-.12-.62-.62-1.1-1.52-1.1-.98 0-1.6.44-1.6 1.06 0 .53.42.85 1.5 1.13l1 .25c1.6.4 2.32 1.13 2.32 2.31 0 1.37-1.06 2.28-2.72 2.5v1.35h-1.5v-1.35c-1.5-.2-2.55-1.08-2.66-2.42h1.56c.1.66.66 1.14 1.68 1.14 1.02 0 1.68-.46 1.68-1.12 0-.53-.38-.84-1.36-1.09l-1.12-.28c-1.44-.36-2.2-1.08-2.2-2.26 0-1.3 1-2.24 2.6-2.44V3.4h.75z"/>
++</svg>
