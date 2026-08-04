@@ -12,5 +12,18 @@ ac_add_options --disable-tests
 ac_add_options --with-ccache=sccache
 mk_add_options 'export RUSTC_WRAPPER=sccache'
 
+# Link-Time Optimization: cross-translation-unit inlining and dead-code
+# elimination at link time, for a faster/leaner binary than the default
+# per-file optimization our "opt" build tier already does. "thin" (not
+# "full") trades a little runtime performance for build parallelism --
+# full LTO here would serialize most of the link step onto one core and
+# roughly double or triple build time.
+#
+# Deliberately NOT using Mozilla's own release mozconfigs as a base for
+# this: those also pull in --enable-official-branding, MOZILLA_OFFICIAL=1,
+# and Google Safe Browsing/location-service API keyfiles we don't have and
+# don't want tied into CanadaFox.
+ac_add_options --enable-lto=thin
+
 # TODO: revisit once firefox/ is fetched and we've confirmed current flag
 # names/branding options against the tree (they drift between releases).

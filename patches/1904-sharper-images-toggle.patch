@@ -1,0 +1,124 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index d26b00af19..c573960e4c 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -404,6 +404,7 @@ BrowserGlue.prototype = {
+     lazy.DistributionManagement.applyCustomizations();
+ 
+     this._initCiraDnsToggle();
++    this._initSharperImagesToggle();
+     this._initKeywordShortcuts();
+     this._ensureCanadianServicesBookmarks();
+ 
+@@ -453,6 +454,40 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
++  // CanadaFox: "Sharper images" toggle. layout.css.devPixelsPerPx is a
++  // genuine Gecko rendering pref -- the same one that makes a Retina
++  // display look sharper than a standard one, at the same CSS/layout
++  // size. Forcing it higher makes Firefox's own <img srcset>/<picture>
++  // candidate selection prefer higher-resolution variants sites already
++  // publish for HiDPI screens, with no network changes and no AI
++  // upscaling. Off by default: it costs real bandwidth and GPU work, and
++  // does nothing on sites that only publish one resolution.
++  PREF_SHARPER_IMAGES_ENABLED: "canadafox.sharperImages.enabled",
++  SHARPER_IMAGES_DEV_PIXELS_PER_PX: 2.0,
++
++  _initSharperImagesToggle() {
++    this._applySharperImagesSetting();
++    Services.prefs.addObserver(this.PREF_SHARPER_IMAGES_ENABLED, () =>
++      this._applySharperImagesSetting()
++    );
++  },
++
++  _applySharperImagesSetting() {
++    // nsIPrefBranch has no setFloatPref -- layout.css.devPixelsPerPx (like
++    // all float-typed prefs) is stored as a plain numeric string and parsed
++    // on read; getFloatPref exists only as a scriptable convenience getter.
++    if (Services.prefs.getBoolPref(this.PREF_SHARPER_IMAGES_ENABLED, false)) {
++      Services.prefs.setCharPref(
++        "layout.css.devPixelsPerPx",
++        String(this.SHARPER_IMAGES_DEV_PIXELS_PER_PX)
++      );
++    } else {
++      // -1 means "choose automatically based on the platform", i.e. stock
++      // Firefox behaviour (Retina Macs already report 2 on their own).
++      Services.prefs.setCharPref("layout.css.devPixelsPerPx", "-1");
++    }
++  },
++
+   // CanadaFox: address-bar keyword shortcuts matching the pre-loaded
+   // "Canadian Services" bookmarks folder (see distribution.ini) -- type
+   // e.g. "cra" and hit enter instead of navigating the menu or typing the
+diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
+index 03aa8d0b68..6a7838837b 100644
+--- a/browser/components/preferences/config/canadafox.mjs
++++ b/browser/components/preferences/config/canadafox.mjs
+@@ -13,6 +13,11 @@ Preferences.addSetting({
+   id: "canadafoxCiraDns",
+   pref: "canadafox.dns.ciraEnabled",
+ });
++Preferences.add({ id: "canadafox.sharperImages.enabled", type: "bool" });
++Preferences.addSetting({
++  id: "canadafoxSharperImages",
++  pref: "canadafox.sharperImages.enabled",
++});
+ 
+ // The settings referenced below (e.g. "lockPinnedTabs") are registered by
+ // their own feature's config module (tabs-browsing.mjs); this page just
+@@ -43,6 +48,16 @@ SettingGroupManager.registerGroups({
+       },
+     ],
+   },
++  canadafoxDisplay: {
++    l10nId: "canadafox-settings-display-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "canadafoxSharperImages",
++        l10nId: "canadafox-sharper-images",
++      },
++    ],
++  },
+   canadafoxPrivacy: {
+     l10nId: "canadafox-settings-privacy-group",
+     headingLevel: 2,
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index 9ca870b77e..3c966b6cd8 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -456,6 +456,7 @@ const CONFIG_PANES = Object.freeze({
+     groupIds: [
+       "canadafoxIntro",
+       "canadafoxTabs",
++      "canadafoxDisplay",
+       "canadafoxPrivacy",
+       "canadafoxAddons",
+     ],
+diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
+index 4908f41f1d..465983e14f 100644
+--- a/browser/locales/en-US/browser/preferences/preferences.ftl
++++ b/browser/locales/en-US/browser/preferences/preferences.ftl
+@@ -2702,6 +2702,9 @@ canadafox-settings-intro =
+ canadafox-settings-tabs-group =
+     .label = Tabs
+ 
++canadafox-settings-display-group =
++    .label = Display
++
+ canadafox-settings-privacy-group =
+     .label = Privacy
+ 
+@@ -2710,6 +2713,11 @@ canadafox-cira-dns =
+     .accesskey = D
+     .description = CanadaFox-specific setting, not present in stock Firefox. Turning this off falls back to your system's regular DNS.
+ 
++canadafox-sharper-images =
++    .label = Request sharper images and text (uses more data and battery)
++    .accesskey = S
++    .description = Makes CanadaFox render pages as if on a high-resolution display, so sites offering a sharper photo for high-density screens serve it to you too. Same on-screen size, more detail where a site has it to give. Off by default: it costs more bandwidth and battery, and does nothing on sites that only publish one image size.
++
+ canadafox-settings-addons-group =
+     .label = Pre-installed extensions
+ 

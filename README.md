@@ -1,5 +1,7 @@
 # CanadaFox
 
+[![Patches Apply](https://github.com/Binhex-Canada/canadafox/actions/workflows/patches-apply.yml/badge.svg)](https://github.com/Binhex-Canada/canadafox/actions/workflows/patches-apply.yml)
+
 ![The flag of Canada](docs/images/canada-flag-4k.png)
 
 A privacy-hardened macOS browser built by patching upstream Firefox: all
@@ -30,6 +32,7 @@ scripts/apply-patches.sh  # apply patches/*.patch on top of a clean checkout
 scripts/bootstrap.sh      # one-time: install Firefox's build dependencies
 scripts/build.sh          # build (mach build)
 scripts/run.sh            # run the built browser
+scripts/test-release.py   # smoke-test a packaged build over Marionette
 ```
 
 ## Version
@@ -39,7 +42,7 @@ scripts/run.sh            # run the built browser
 | CanadaFox version | `0.0.3.6` |
 | Based on | Firefox `153.0.3` (Release channel) |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `1d94c318b8fd` (2026-08-01) |
-| Patches applied | 33 (see `patches/`) |
+| Patches applied | 34 (see `patches/`) |
 
 Note: CanadaFox tracks Firefox's **Release** channel, not Nightly — the
 build vetted and shipped to real users every ~4 weeks, rather than daily,
@@ -95,6 +98,20 @@ an amount followed by "tax" and a province in the address bar, e.g.
 row. All three compute locally from the standard published rates -- no
 network request. General rates only; some goods and services are
 zero-rated or exempt, so treat it as an estimate.
+
+Note: a "Request sharper images and text" toggle in Settings → CanadaFox
+(off by default) forces `layout.css.devPixelsPerPx` higher, the same
+Gecko pref that makes a Retina display render sharper than a standard one
+at the same on-screen size. Sites that already publish a higher-resolution
+`srcset`/`<picture>` candidate for HiDPI screens serve it to you too, no
+network changes and no AI upscaling involved. Off by default since it
+costs real bandwidth and battery, and does nothing on sites that only
+publish one image size.
+
+Note: builds use thin LTO (`--enable-lto=thin`), the same cross-file
+link-time optimization official Firefox release builds get that a plain
+local build doesn't, for a faster and leaner binary. Costs meaningfully
+more build time; no runtime behavior change otherwise.
 
 Note: DNS-over-HTTPS is pointed at
 [CIRA Canadian Shield](https://www.cira.ca/en/canadian-shield/) (Protected

@@ -1,0 +1,28 @@
+name: Patches Apply
+
+# Building all of Firefox in CI isn't practical here -- a full local build
+# with LTO takes tens of minutes to an hour on dedicated hardware, well
+# beyond what's reasonable to run per push on shared runners. What this
+# checks instead: that every patch in patches/ still applies cleanly to
+# the current Firefox Release source, which is exactly the kind of thing
+# that silently breaks when upstream shifts (see CHANGELOG.md's Release
+# rebases) and is worth catching before a local build attempt hits it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Firefox Release source
+        run: bash scripts/fetch.sh
+
+      - name: Apply all patches
+        run: bash scripts/apply-patches.sh

@@ -17,6 +17,33 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   groceries, prescription drugs, etc.) are zero-rated or exempt, so
   treat it as an estimate rather than a guarantee of what any specific
   purchase will charge.
+- A **"Request sharper images and text"** toggle in Settings → CanadaFox
+  (off by default). Forces `layout.css.devPixelsPerPx` higher, the same
+  Gecko rendering pref that makes a Retina display look sharper than a
+  standard one at the same on-screen size. Sites that publish a
+  higher-resolution `srcset`/`<picture>` candidate for high-density
+  screens now serve it to everyone, not just people already on a HiDPI
+  display -- no network changes, no AI upscaling, just asking for the
+  better asset a site already has. Off by default since it costs real
+  bandwidth and GPU/battery, and does nothing on sites that only publish
+  one image size.
+- `scripts/test-release.py`, a Marionette-driven smoke-test suite that
+  runs 16 checks (version, startup tabs, bookmarks, keyword shortcuts,
+  privacy prefs, the tax calculator's three surfaces, sharper images,
+  bundled uBlock Origin, Settings page) against an actual packaged
+  `CanadaFox.app`, so a release can be verified end-to-end with one
+  command instead of ad hoc manual checks.
+
+### Changed
+- Builds now use thin LTO (`--enable-lto=thin` in `mozconfig`), the same
+  cross-file link-time optimization official Firefox release builds get
+  that a plain local "opt" build doesn't, for a faster and leaner binary.
+  Costs meaningfully more build time (link step is no longer parallel
+  across files), no runtime behavior change otherwise. Deliberately not
+  adopting Mozilla's own release mozconfigs to get this, since those also
+  pull in `--enable-official-branding`, `MOZILLA_OFFICIAL=1`, and Google
+  Safe Browsing/location-service API keys CanadaFox doesn't have and
+  doesn't want tied in.
 
 ### Removed
 - The decorative full-colour Canadian flag toolbar button. It did nothing
