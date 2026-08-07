@@ -3,6 +3,59 @@
 All notable changes to CanadaFox are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.0.3.7] - 2026-08-05
+
+### Added
+- A **WelcomeBC — After Arriving in B.C.** entry in the pre-loaded
+  "Canadian Services" bookmarks folder, linking to
+  welcomebc.ca's after-arrival settlement guide.
+- A **"Clear cache"** toolbar button next to the sales-tax calculator
+  button. Clicking it doesn't clear anything immediately -- it opens a
+  small confirm panel (Cancel / Clear Cache) first, since clearing the
+  cache is a one-way action and a stray click shouldn't be able to trigger
+  it. Confirming clears both the network and image cache
+  (`nsIClearDataService.CLEAR_ALL_CACHES`) for all sites right away, with
+  a brief "Cache cleared" confirmation shown in the same panel.
+- A **"Warn about lookalike domains impersonating known sites"** toggle in
+  Settings → CanadaFox (on by default), built entirely from scratch (not a
+  Firefox pref flip). Every top-level navigation is checked, on-device,
+  against a small bundled list of frequently-impersonated Canadian
+  government, banking, and major tech domains (canada.ca, CRA, Service
+  Canada, RBC, TD, Scotiabank, BMO, CIBC, Interac, Desjardins, Canada
+  Post, Microsoft, Apple, Google, PayPal, Amazon, Netflix). A
+  character-substitution-aware edit-distance and hyphenation check flags
+  addresses that closely resemble one of these but aren't it -- e.g.
+  `cra-refund-canada.com` or `rbc-secure-login.net` -- and shows a warning
+  page (registered as a real `about:canadafoxlookalike` page, implemented
+  as a JS content policy, the same mechanism enterprise policy's website
+  blocklisting uses) before the real page loads, with an explicit
+  "continue anyway" escape hatch. No network requests; nothing leaves the
+  device to produce the warning. Heuristic by nature -- it can occasionally
+  flag an unrelated site that happens to share a hyphenated word with a
+  protected domain, traded off against catching brand-new lookalike
+  domains a reputation-based blocklist wouldn't have seen yet.
+- A **"Strip tracking parameters from links"** toggle in Settings →
+  CanadaFox (on by default). Firefox already ships a query-string-stripping
+  engine (`privacy.query_stripping.*`) that removes known tracker params
+  (`utm_*`, `fbclid`, `gclid`, and similar) from URLs, including through
+  redirect/bounce chains -- it's just off by default upstream, and only
+  covers links you copy or share via "Copy Clean Link"
+  (`privacy.query_stripping.strip_on_share.enabled`, already on). This
+  turns on the navigation-time half too, so tracking params get stripped
+  whether you click a link or copy it. Entirely local, no network changes;
+  can be turned off in Settings without a restart.
+
+### Changed
+- Consolidated the "Canadian Services" bookmarks feature (originally spread
+  across four separate patches added over time) into a single
+  `patches/1806-canadian-services-bookmarks.patch` covering
+  `distribution.ini`'s seed list, the `moz.build` wiring to ship it, and
+  BrowserGlue's self-healing top-up logic together. The unrelated
+  welcome-tab session-restore fix that had been bundled into one of those
+  patches is now its own `patches/1807-fix-welcome-tab-persistence.patch`.
+  No behavior change -- same 7 bookmarks, same self-healing mechanism --
+  just fewer, better-scoped patch files to read.
+
 ## [0.0.3.6] - 2026-08-03
 
 ### Added

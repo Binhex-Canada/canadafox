@@ -1,0 +1,113 @@
+diff --git a/browser/branding/unofficial/pref/firefox-branding.js b/browser/branding/unofficial/pref/firefox-branding.js
+index 87b4fa0ed8..10463aafeb 100644
+--- a/browser/branding/unofficial/pref/firefox-branding.js
++++ b/browser/branding/unofficial/pref/firefox-branding.js
+@@ -21,6 +21,12 @@ pref("canadafox.welcomeTab.url", "about:canadafoxwelcome");
+ // this pref's ON state matches -- this is what lets a user turn it off.
+ pref("canadafox.dns.ciraEnabled", true);
+ 
++// CanadaFox: "Strip tracking parameters" toggle (Settings -> CanadaFox),
++// applied by BrowserGlue._applyStripTrackingParamsSetting. Maps onto
++// Firefox's own privacy.query_stripping.enabled(.pbmode), which is off by
++// default upstream -- CanadaFox turns it on.
++pref("canadafox.privacy.stripTrackingParams", true);
++
+ // CanadaFox: about:home's startup cache assumes Activity Stream has been
+ // constructed, but pointing new tabs at about:canadafoxnewtab (see
+ // utilityOverlay.js) means nothing triggers that construction, so the cache
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index c573960e4c..9702f2920c 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -404,6 +404,7 @@ BrowserGlue.prototype = {
+     lazy.DistributionManagement.applyCustomizations();
+ 
+     this._initCiraDnsToggle();
++    this._initStripTrackingParamsToggle();
+     this._initSharperImagesToggle();
+     this._initKeywordShortcuts();
+     this._ensureCanadianServicesBookmarks();
+@@ -454,6 +455,37 @@ BrowserGlue.prototype = {
+     }
+   },
+ 
++  // CanadaFox: "Strip tracking parameters" toggle. Firefox already ships a
++  // query-string-stripping engine (privacy.query_stripping.*) that removes
++  // known tracker params (utm_*, fbclid, gclid, ...) from URLs as you
++  // navigate, including through redirect/bounce chains -- it's just off by
++  // default upstream. This is the navigation-time sibling of "Copy Clean
++  // Link" (privacy.query_stripping.strip_on_share.enabled), which strips
++  // the same params only when a link is copied/shared and is already on.
++  // Turning this on closes the gap: tracking params get stripped whether
++  // you click a link or copy it. On by default; entirely local, no network
++  // changes.
++  PREF_STRIP_TRACKING_PARAMS_ENABLED: "canadafox.privacy.stripTrackingParams",
++
++  _initStripTrackingParamsToggle() {
++    this._applyStripTrackingParamsSetting();
++    Services.prefs.addObserver(this.PREF_STRIP_TRACKING_PARAMS_ENABLED, () =>
++      this._applyStripTrackingParamsSetting()
++    );
++  },
++
++  _applyStripTrackingParamsSetting() {
++    let enabled = Services.prefs.getBoolPref(
++      this.PREF_STRIP_TRACKING_PARAMS_ENABLED,
++      true
++    );
++    Services.prefs.setBoolPref("privacy.query_stripping.enabled", enabled);
++    Services.prefs.setBoolPref(
++      "privacy.query_stripping.enabled.pbmode",
++      enabled
++    );
++  },
++
+   // CanadaFox: "Sharper images" toggle. layout.css.devPixelsPerPx is a
+   // genuine Gecko rendering pref -- the same one that makes a Retina
+   // display look sharper than a standard one, at the same CSS/layout
+diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
+index 6a7838837b..003bcd93ed 100644
+--- a/browser/components/preferences/config/canadafox.mjs
++++ b/browser/components/preferences/config/canadafox.mjs
+@@ -13,6 +13,14 @@ Preferences.addSetting({
+   id: "canadafoxCiraDns",
+   pref: "canadafox.dns.ciraEnabled",
+ });
++Preferences.add({
++  id: "canadafox.privacy.stripTrackingParams",
++  type: "bool",
++});
++Preferences.addSetting({
++  id: "canadafoxStripTrackingParams",
++  pref: "canadafox.privacy.stripTrackingParams",
++});
+ Preferences.add({ id: "canadafox.sharperImages.enabled", type: "bool" });
+ Preferences.addSetting({
+   id: "canadafoxSharperImages",
+@@ -66,6 +74,10 @@ SettingGroupManager.registerGroups({
+         id: "canadafoxCiraDns",
+         l10nId: "canadafox-cira-dns",
+       },
++      {
++        id: "canadafoxStripTrackingParams",
++        l10nId: "canadafox-strip-tracking-params",
++      },
+     ],
+   },
+   canadafoxAddons: {
+diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
+index 465983e14f..7d637c59c8 100644
+--- a/browser/locales/en-US/browser/preferences/preferences.ftl
++++ b/browser/locales/en-US/browser/preferences/preferences.ftl
+@@ -2713,6 +2713,11 @@ canadafox-cira-dns =
+     .accesskey = D
+     .description = CanadaFox-specific setting, not present in stock Firefox. Turning this off falls back to your system's regular DNS.
+ 
++canadafox-strip-tracking-params =
++    .label = Strip tracking parameters from links (utm_*, fbclid, gclid, and similar)
++    .accesskey = T
++    .description = Uses Firefox's own link-cleaning engine, but applies it to every page you navigate to, not just links you copy or share. Off by default in stock Firefox; CanadaFox turns it on.
++
+ canadafox-sharper-images =
+     .label = Request sharper images and text (uses more data and battery)
+     .accesskey = S

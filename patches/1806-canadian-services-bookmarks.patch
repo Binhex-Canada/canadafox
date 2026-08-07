@@ -1,16 +1,73 @@
+diff --git a/browser/app/distribution/distribution.ini b/browser/app/distribution/distribution.ini
+index 5c16c3bab1..5c5a0620b6 100644
+--- a/browser/app/distribution/distribution.ini
++++ b/browser/app/distribution/distribution.ini
+@@ -1,4 +1,38 @@
+ [Global]
+-id=mozilla-official
++id=canadafox
+ version=1.0
+-about=Mozilla Firefox Official Build
+\ No newline at end of file
++about=CanadaFox
++
++[BookmarksToolbar]
++item.1.type=folder
++item.1.title=Canadian Services
++item.1.folderId=1
++
++[BookmarksFolder-1]
++item.1.type=bookmark
++item.1.title=Canada Revenue Agency (CRA)
++item.1.link=https://www.canada.ca/en/revenue-agency.html
++
++item.2.type=bookmark
++item.2.title=Service Canada
++item.2.link=https://www.canada.ca/en/employment-social-development/corporate/portfolio/service-canada.html
++
++item.3.type=bookmark
++item.3.title=Canada.ca — Health
++item.3.link=https://www.canada.ca/en/services/health.html
++
++item.4.type=bookmark
++item.4.title=CBC News
++item.4.link=https://www.cbc.ca/news
++
++item.5.type=bookmark
++item.5.title=Canada Benefits Finder
++item.5.link=https://www.canada.ca/en/services/benefits/finder.html
++
++item.6.type=bookmark
++item.6.title=BC Services A-Z
++item.6.link=https://www2.gov.bc.ca/gov/content/home/services-a-z
++
++item.7.type=bookmark
++item.7.title=WelcomeBC — After Arriving in B.C.
++item.7.link=https://www.welcomebc.ca/start-your-life-in-b-c/after-arriving-in-bc
+diff --git a/browser/app/distribution/moz.build b/browser/app/distribution/moz.build
+index 0a175ac0a4..7e30f4c6bc 100644
+--- a/browser/app/distribution/moz.build
++++ b/browser/app/distribution/moz.build
+@@ -9,6 +9,14 @@ if CONFIG["BUILT_BY_MOZILLA"]:
+         "distribution.ini",
+     ]
+ 
++# CanadaFox: distribution.ini is normally only packaged for official
++# Mozilla builds (see the BUILT_BY_MOZILLA check above), but we use it to
++# seed a pre-loaded bookmarks folder of Canadian services, so ship it
++# unconditionally.
++FINAL_TARGET_FILES.distribution += [
++    "distribution.ini",
++]
++
+ # CanadaFox: ship an enterprise-policy file so the default search
+ # engine is set the same way distributors do it (durable across the
+ # remote-settings-driven, locale/region search config), rather than a plain
 diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
-index e775a11ffa..e171ba8625 100644
+index 8d21b1fea6..39ed80ecb7 100644
 --- a/browser/components/BrowserGlue.sys.mjs
 +++ b/browser/components/BrowserGlue.sys.mjs
-@@ -10,6 +10,7 @@ const lazy = {};
- ChromeUtils.defineESModuleGetters(lazy, {
-   AboutHomeStartupCache: "resource:///modules/AboutHomeStartupCache.sys.mjs",
-   PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
-+  SessionStore: "resource:///modules/sessionstore/SessionStore.sys.mjs",
-   AWToolbarButton: "resource:///modules/aboutwelcome/AWToolbarUtils.sys.mjs",
-   ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
-   ASRouterDefaultConfig:
-@@ -404,6 +405,7 @@ BrowserGlue.prototype = {
+@@ -404,6 +404,7 @@ BrowserGlue.prototype = {
  
      this._initCiraDnsToggle();
      this._initKeywordShortcuts();
@@ -18,7 +75,7 @@ index e775a11ffa..e171ba8625 100644
  
      // handle any UI migration
      this._migrateUI();
-@@ -477,6 +479,94 @@ BrowserGlue.prototype = {
+@@ -477,6 +478,98 @@ BrowserGlue.prototype = {
      }
    },
  
@@ -52,6 +109,10 @@ index e775a11ffa..e171ba8625 100644
 +    {
 +      title: "BC Services A-Z",
 +      url: "https://www2.gov.bc.ca/gov/content/home/services-a-z",
++    },
++    {
++      title: "WelcomeBC — After Arriving in B.C.",
++      url: "https://www.welcomebc.ca/start-your-life-in-b-c/after-arriving-in-bc",
 +    },
 +  ],
 +
@@ -113,49 +174,3 @@ index e775a11ffa..e171ba8625 100644
    _checkForOldBuildUpdates() {
      // check for update if our build is old
      if (
-@@ -881,12 +971,16 @@ BrowserGlue.prototype = {
-   // fires only once per profile, so it cannot express "always there until
-   // dismissed", and having it open the page too would duplicate this one.
-   //
--  // Creation is gated on our own pref rather than "is the tab already
--  // open?", because at every startup hook the session-restored tabs exist
--  // but have not loaded yet -- their browsers still report about:blank, so
--  // a URL check would always miss and add a duplicate on every launch.
-+  // Existence is checked with SessionStore.getTabState rather than a
-+  // "did we already create it" pref: an earlier version used such a flag,
-+  // and it meant the tab could never come back once anything other than a
-+  // genuine user close removed it (a crash, a killed process, a session
-+  // restore that dropped it) -- exactly the "always there" guarantee this
-+  // is supposed to provide, broken by the one thing meant to protect it.
-+  // getTabState still works on a not-yet-loaded restored tab (its browser
-+  // reports about:blank until then), which is what a plain
-+  // linkedBrowser.currentURI check cannot see.
-   PREF_WELCOME_TAB_URL: "canadafox.welcomeTab.url",
--  PREF_WELCOME_TAB_CREATED: "canadafox.welcomeTab.created",
-   PREF_WELCOME_TAB_DISMISSED: "canadafox.welcomeTab.dismissed",
- 
-   _maybeShowWelcomeTab() {
-@@ -907,10 +1001,21 @@ BrowserGlue.prototype = {
-       return;
-     }
- 
--    if (!Services.prefs.getBoolPref(this.PREF_WELCOME_TAB_CREATED, false)) {
-+    let alreadyPresent = win.gBrowser.tabs.some(tab => {
-+      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
-+        return true;
-+      }
-+      try {
-+        let state = JSON.parse(lazy.SessionStore.getTabState(tab));
-+        return state.entries?.[state.index - 1]?.url == welcomeURL;
-+      } catch (ex) {
-+        return false;
-+      }
-+    });
-+
-+    if (!alreadyPresent) {
-       let tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
-       win.gBrowser.pinTab(tab);
--      Services.prefs.setBoolPref(this.PREF_WELCOME_TAB_CREATED, true);
-     }
- 
-     // Matching on the URL at close time rather than holding a reference to

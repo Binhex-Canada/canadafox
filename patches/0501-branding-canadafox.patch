@@ -53,11 +53,11 @@ index c60c42f574..cb05d38943 100644
 +++ b/browser/config/version.txt
 @@ -1 +1 @@
 -153.0.4
-+0.0.3.6
++0.0.3.7
 diff --git a/browser/config/version_display.txt b/browser/config/version_display.txt
 index c60c42f574..cb05d38943 100644
 --- a/browser/config/version_display.txt
 +++ b/browser/config/version_display.txt
 @@ -1 +1 @@
 -153.0.4
-+0.0.3.6
++0.0.3.7

@@ -7,7 +7,7 @@
 A privacy-hardened macOS browser built by patching upstream Firefox: all
 telemetry, tracking, and "phone home" behavior removed as a starting point.
 
-There is no point in using this software. Why would you use this? This was created during a fever dream. Hey, wasn't the movie Obession great? 
+There is no point in using this software. Why would you use this? This was created during a fever dream.
 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed release to release.
 
@@ -39,10 +39,10 @@ scripts/test-release.py   # smoke-test a packaged build over Marionette
 
 | | |
 |---|---|
-| CanadaFox version | `0.0.3.6` |
+| CanadaFox version | `0.0.3.7` |
 | Based on | Firefox `153.0.4` (Release channel) |
 | Upstream source | [`mozilla-firefox/firefox`](https://github.com/mozilla-firefox/firefox), `release` branch @ `01036b0ee0b3` (2026-08-04) |
-| Patches applied | 34 (see `patches/`) |
+| Patches applied | 36 (see `patches/`) |
 
 Note: CanadaFox tracks Firefox's **Release** channel, not Nightly — the
 build vetted and shipped to real users every ~4 weeks, rather than daily,
@@ -81,10 +81,6 @@ history" fact when today's date matches one, instead of the normal
 topsites/shortcuts grid. It's registered as a real `about:` page
 (`about:canadafoxnewtab`), so the address bar stays empty on a new tab
 just like it does in stock Firefox.
-
-Note: the Canadian welcome/quote page (`about:canadafoxwelcome`) opens
-pinned the first time a profile runs and, being pinned, comes back on
-every launch after that. Close it and it's gone for good.
 
 Note: a **Canadian Services** bookmarks folder (CRA, Service Canada,
 Canada.ca Health, CBC News) is pre-loaded onto the bookmarks toolbar,
@@ -131,16 +127,41 @@ stores your data or which law applies: a foreign site behind a CDN commonly
 answers from a Canadian edge node. Data from
 [DB-IP](https://db-ip.com) under CC BY 4.0; see `vendor/geoip/README.md`.
 
+Note: a "Strip tracking parameters from links" toggle in Settings →
+CanadaFox (on by default) turns on Firefox's own query-string-stripping
+engine for normal navigation, not just for links you copy. Firefox already
+strips tracker params like `utm_*`, `fbclid`, and `gclid` when a link is
+copied or shared (`privacy.query_stripping.strip_on_share.enabled`),
+but leaves the sibling pref that strips them as you actually navigate
+(`privacy.query_stripping.enabled`) off by default; CanadaFox turns it on.
+Entirely local, no network changes.
+
+Note: a "Warn about lookalike domains impersonating known sites" toggle in
+Settings → CanadaFox (on by default) checks the address you're navigating
+to against a small bundled list of frequently-impersonated Canadian
+government, banking, and major tech sites (CRA, Service Canada, the big
+five banks, Interac, Microsoft, Apple, Google, PayPal, Amazon...) and
+flags addresses that closely resemble one but aren't it -- things like
+`cra-refund-canada.com` or `microsoft-support-alert.com`. Entirely local:
+a similarity check (character-substitution + edit-distance) runs against
+the bundled list, no network request. Shows a warning page before the
+real page loads, with an option to continue anyway. Heuristic, so it can
+occasionally flag an unrelated site that happens to share a hyphenated
+word with a protected domain -- that's the tradeoff for catching brand-new
+lookalike domains a blocklist wouldn't have seen yet.
+
+Note: a red "clear cache" toolbar button sits next to the tax calculator
+button. It doesn't clear the cache on click -- it opens a small confirm
+panel first ("Clear cache? This can't be undone.") with explicit Cancel /
+Clear Cache buttons, so a stray click can't silently wipe it. Confirming
+clears both the network and image cache (`nsIClearDataService`'s
+`CLEAR_ALL_CACHES`, the same flag Firefox's own "Clear Recent History"
+uses for cache) for all sites immediately, with a brief "Cache cleared"
+confirmation in the panel.
+
 Note: genuine network errors (page not found, connection refused, offline —
 not certificate/security warnings) show a short blurb from a real Historica
 Canada Heritage Minute, e.g. Naismith inventing basketball or Wilder
 Penfield's "burnt toast." Wired into both of Firefox's error-page rendering
 paths, since a very recent Nightly refresh replaces the classic one for most
 error types.
-
-Note: once per session, CanadaFox checks
-`github.com/Binhex-Canada/canadafox`'s latest release and shows a
-dismissible notification if a newer version exists — no auto-download or
-install, just a link to go grab it. This is the one intentional network
-call this project adds on top of Safe Browsing; unlike everything else
-it strips out, it only ever talks to this project's own GitHub repo.

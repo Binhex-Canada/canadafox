@@ -1,0 +1,58 @@
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 39ed80ecb7..96b001ac9c 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -10,6 +10,7 @@ const lazy = {};
+ ChromeUtils.defineESModuleGetters(lazy, {
+   AboutHomeStartupCache: "resource:///modules/AboutHomeStartupCache.sys.mjs",
+   PlacesUtils: "resource://gre/modules/PlacesUtils.sys.mjs",
++  SessionStore: "resource:///modules/sessionstore/SessionStore.sys.mjs",
+   AWToolbarButton: "resource:///modules/aboutwelcome/AWToolbarUtils.sys.mjs",
+   ASRouter: "resource:///modules/asrouter/ASRouter.sys.mjs",
+   ASRouterDefaultConfig:
+@@ -962,12 +963,16 @@ BrowserGlue.prototype = {
+   // fires only once per profile, so it cannot express "always there until
+   // dismissed", and having it open the page too would duplicate this one.
+   //
+-  // Creation is gated on our own pref rather than "is the tab already
+-  // open?", because at every startup hook the session-restored tabs exist
+-  // but have not loaded yet -- their browsers still report about:blank, so
+-  // a URL check would always miss and add a duplicate on every launch.
++  // Existence is checked with SessionStore.getTabState rather than a
++  // "did we already create it" pref: an earlier version used such a flag,
++  // and it meant the tab could never come back once anything other than a
++  // genuine user close removed it (a crash, a killed process, a session
++  // restore that dropped it) -- exactly the "always there" guarantee this
++  // is supposed to provide, broken by the one thing meant to protect it.
++  // getTabState still works on a not-yet-loaded restored tab (its browser
++  // reports about:blank until then), which is what a plain
++  // linkedBrowser.currentURI check cannot see.
+   PREF_WELCOME_TAB_URL: "canadafox.welcomeTab.url",
+-  PREF_WELCOME_TAB_CREATED: "canadafox.welcomeTab.created",
+   PREF_WELCOME_TAB_DISMISSED: "canadafox.welcomeTab.dismissed",
+ 
+   _maybeShowWelcomeTab() {
+@@ -988,10 +993,21 @@ BrowserGlue.prototype = {
+       return;
+     }
+ 
+-    if (!Services.prefs.getBoolPref(this.PREF_WELCOME_TAB_CREATED, false)) {
++    let alreadyPresent = win.gBrowser.tabs.some(tab => {
++      if (tab.linkedBrowser?.currentURI?.spec == welcomeURL) {
++        return true;
++      }
++      try {
++        let state = JSON.parse(lazy.SessionStore.getTabState(tab));
++        return state.entries?.[state.index - 1]?.url == welcomeURL;
++      } catch (ex) {
++        return false;
++      }
++    });
++
++    if (!alreadyPresent) {
+       let tab = win.gBrowser.addTrustedTab(welcomeURL, { inBackground: true });
+       win.gBrowser.pinTab(tab);
+-      Services.prefs.setBoolPref(this.PREF_WELCOME_TAB_CREATED, true);
+     }
+ 
+     // Matching on the URL at close time rather than holding a reference to

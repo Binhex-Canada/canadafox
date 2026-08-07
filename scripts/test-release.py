@@ -9,7 +9,7 @@ this is a "unit test" in the sense of one assertion per feature, not a
 mock of the browser.
 
 Usage:
-    python3 scripts/test-release.py [--app /path/to/CanadaFox.app] [--version 0.0.3.6]
+    python3 scripts/test-release.py [--app /path/to/CanadaFox.app] [--version 0.0.3.7]
 
 Exits non-zero if any check fails, so it's safe to gate a release on.
 """
@@ -224,6 +224,31 @@ class CanadaFoxSmokeTest(unittest.TestCase):
         self.assertEqual(result["mode"], 2)
         self.assertIn("canadianshield.cira.ca", result["uri"])
 
+    def test_17_strip_tracking_params_on_by_default(self):
+        result = self.m().chrome("""
+            return {
+                enabled: Services.prefs.getBoolPref("privacy.query_stripping.enabled", false),
+                pbmode: Services.prefs.getBoolPref("privacy.query_stripping.enabled.pbmode", false),
+            };
+        """)
+        self.assertTrue(result["enabled"])
+        self.assertTrue(result["pbmode"])
+
+    def test_18_lookalike_domain_detection(self):
+        result = self.m().chrome("""
+            const { findLookalikeMatch } = ChromeUtils.importESModule(
+                "resource:///modules/CanadaFoxLookalikeProtection.sys.mjs"
+            );
+            return {
+                real: findLookalikeMatch("canada.ca"),
+                fake: findLookalikeMatch("cra-arc-refund.com"),
+                unrelated: findLookalikeMatch("example.com"),
+            };
+        """)
+        self.assertIsNone(result["real"], "real protected domain should not be flagged")
+        self.assertIsNone(result["unrelated"], "unrelated domain should not be flagged")
+        self.assertIsNotNone(result["fake"], "lookalike domain should be flagged")
+
     # -- Toolbar --------------------------------------------------------------
 
     def test_10_tax_toolbar_button_exists_and_no_flag_button(self):
@@ -257,6 +282,31 @@ class CanadaFoxSmokeTest(unittest.TestCase):
         """)
         self.assertIn(result["panelState"], ("open", "showing"))
         self.assertIn("56.50", result["result"], result["result"])
+
+    def test_19_clearcache_button_confirms_before_clearing(self):
+        self.m().chrome("""
+            let win = Services.wm.getMostRecentWindow("navigator:browser");
+            win.document.getElementById("canadafox-clearcache-button-inner").click();
+        """)
+        time.sleep(1)
+        panel_state = self.m().chrome("""
+            let win = Services.wm.getMostRecentWindow("navigator:browser");
+            return win.document.getElementById("canadafox-clearcache-panel").state;
+        """)
+        self.assertIn(
+            panel_state, ("open", "showing"), "clicking the button should open a confirm panel, not clear immediately"
+        )
+
+        self.m().chrome("""
+            let win = Services.wm.getMostRecentWindow("navigator:browser");
+            win.document.getElementById("canadafox-clearcache-confirm-button").click();
+        """)
+        time.sleep(1)
+        status_text = self.m().chrome("""
+            let win = Services.wm.getMostRecentWindow("navigator:browser");
+            return win.document.getElementById("canadafox-clearcache-status").textContent;
+        """)
+        self.assertTrue(status_text, "clearing should show a confirmation message")
 
     # -- Address-bar sales tax calculator --------------------------------
 
@@ -346,7 +396,7 @@ class CanadaFoxSmokeTest(unittest.TestCase):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app", default=DEFAULT_APP, help="Path to CanadaFox.app")
-    parser.add_argument("--version", default=None, help="Expected version, e.g. 0.0.3.6")
+    parser.add_argument("--version", default=None, help="Expected version, e.g. 0.0.3.7")
     args = parser.parse_args()
 
     CanadaFoxSmokeTest.app_path = args.app

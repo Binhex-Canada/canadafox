@@ -1,0 +1,239 @@
+diff --git a/browser/base/content/browser-init.js b/browser/base/content/browser-init.js
+index 66c0ad5667..fcab3c98f7 100644
+--- a/browser/base/content/browser-init.js
++++ b/browser/base/content/browser-init.js
+@@ -481,6 +481,7 @@ var gBrowserInit = {
+ 
+     CanadaFoxServedFrom.init();
+     CanadaFoxTaxCalculator.init();
++    CanadaFoxClearCache.init();
+ 
+     gBrowser.addEventListener(
+       "PermissionStateChange",
+diff --git a/browser/base/content/browser.js b/browser/base/content/browser.js
+index 129acf3c76..1f8d07a5a9 100644
+--- a/browser/base/content/browser.js
++++ b/browser/base/content/browser.js
+@@ -5137,3 +5137,59 @@ var CanadaFoxTaxCalculator = {
+     document.getElementById("canadafox-tax-amount").focus();
+   },
+ };
++
++// CanadaFox: the toolbar "clear cache" button. Deliberately a confirm-first
++// action rather than a single click, since it's a one-way, no-undo action --
++// the panel exists so a stray click doesn't silently clear the cache.
++var CanadaFoxClearCache = {
++  init() {
++    document
++      .getElementById("canadafox-clearcache-button-inner")
++      .addEventListener("click", event => this.togglePanel(event));
++  },
++
++  _initialized: false,
++
++  _initPanel() {
++    if (this._initialized) {
++      return;
++    }
++    this._initialized = true;
++
++    document
++      .getElementById("canadafox-clearcache-cancel-button")
++      .addEventListener("command", () => this._hide());
++    document
++      .getElementById("canadafox-clearcache-confirm-button")
++      .addEventListener("command", () => this._clear());
++  },
++
++  _hide() {
++    document.getElementById("canadafox-clearcache-panel").hidePopup();
++  },
++
++  _clear() {
++    const confirmButton = document.getElementById(
++      "canadafox-clearcache-confirm-button"
++    );
++    confirmButton.disabled = true;
++    Services.clearData.deleteData(Ci.nsIClearDataService.CLEAR_ALL_CACHES, () => {
++      confirmButton.disabled = false;
++      const statusEl = document.getElementById("canadafox-clearcache-status");
++      document.l10n.setAttributes(statusEl, "canadafox-clearcache-done");
++      statusEl.hidden = false;
++      setTimeout(() => this._hide(), 1200);
++    });
++  },
++
++  togglePanel(event) {
++    this._initPanel();
++    const panel = document.getElementById("canadafox-clearcache-panel");
++    if (panel.state == "open" || panel.state == "showing") {
++      panel.hidePopup();
++      return;
++    }
++    document.getElementById("canadafox-clearcache-status").hidden = true;
++    panel.openPopup(event.target, "bottomright topright");
++  },
++};
+diff --git a/browser/base/content/main-popupset.inc.xhtml b/browser/base/content/main-popupset.inc.xhtml
+index 59c6bfa972..2e0db44001 100644
+--- a/browser/base/content/main-popupset.inc.xhtml
++++ b/browser/base/content/main-popupset.inc.xhtml
+@@ -179,6 +179,24 @@
+     </vbox>
+   </panel>
+ 
++  <panel id="canadafox-clearcache-panel"
++         class="panel-no-padding"
++         type="arrow"
++         orient="vertical"
++         noautofocus="true"
++         position="bottomright topright">
++    <vbox id="canadafox-clearcache-panel-body">
++      <html:h1 id="canadafox-clearcache-panel-title" data-l10n-id="canadafox-clearcache-panel-title"/>
++      <html:p id="canadafox-clearcache-panel-desc" data-l10n-id="canadafox-clearcache-panel-desc"/>
++      <hbox id="canadafox-clearcache-panel-buttons">
++        <button id="canadafox-clearcache-cancel-button" data-l10n-id="canadafox-clearcache-cancel-button"/>
++        <button id="canadafox-clearcache-confirm-button"
++                data-l10n-id="canadafox-clearcache-confirm-button"/>
++      </hbox>
++      <html:p id="canadafox-clearcache-status" hidden="true"/>
++    </vbox>
++  </panel>
++
+   <!-- Starting point for sidebar tools overflow -->
+   <panel id="sidebar-tools-overflow"
+        class="panel-no-padding"
+diff --git a/browser/base/content/navigator-toolbox.inc.xhtml b/browser/base/content/navigator-toolbox.inc.xhtml
+index 0e5d569598..5e97817fcc 100644
+--- a/browser/base/content/navigator-toolbox.inc.xhtml
++++ b/browser/base/content/navigator-toolbox.inc.xhtml
+@@ -545,6 +545,11 @@
+                      class="toolbarbutton-1"
+                      data-l10n-id="canadafox-toolbar-tax-button"/>
+     </toolbaritem>
++    <toolbaritem id="canadafox-clearcache-button" removable="false" overflows="false">
++      <toolbarbutton id="canadafox-clearcache-button-inner"
++                     class="toolbarbutton-1"
++                     data-l10n-id="canadafox-toolbar-clearcache-button"/>
++    </toolbaritem>
+     <hbox class="titlebar-spacer" type="post-tabs"/>
+ #include private-browsing-indicator.inc.xhtml
+     <toolbarbutton class="content-analysis-indicator toolbarbutton-1 content-analysis-indicator-icon"/>
+diff --git a/browser/branding/unofficial/content/canada-clearcache.svg b/browser/branding/unofficial/content/canada-clearcache.svg
+new file mode 100644
+index 0000000000..f2ed0aea36
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-clearcache.svg
+@@ -0,0 +1,8 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
++  <circle cx="8" cy="8" r="7" fill="#c0392b"/>
++  <path fill="#ffffff" d="M6.25 3.5h3.5l.4.9h2.1v1.1H3.75V4.4h2.1l.4-.9Z"/>
++  <path fill="#ffffff" d="M4.6 6.1h6.8l-.55 6.05a1 1 0 0 1-1 .9H6.15a1 1 0 0 1-1-.9L4.6 6.1Zm2.4 1.3v4.1h1v-4.1h-1Zm2 0v4.1h1v-4.1h-1Z"/>
++</svg>
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index 86c08014b0..2a430a59a7 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -22,6 +22,7 @@ browser.jar:
+   content/branding/aboutDialog.css
+   content/branding/canada-flag.svg
+   content/branding/canada-tax.svg
++  content/branding/canada-clearcache.svg
+   content/branding/canada-newtab.html
+   content/branding/canada-welcome.html
+   content/branding/canada-lookalike-warning.html
+diff --git a/browser/locales/en-US/browser/browser.ftl b/browser/locales/en-US/browser/browser.ftl
+index 2ee652816d..49e54e652d 100644
+--- a/browser/locales/en-US/browser/browser.ftl
++++ b/browser/locales/en-US/browser/browser.ftl
+@@ -1290,6 +1290,21 @@ canadafox-tax-copy-button =
+ 
+ canadafox-tax-disclaimer = General statutory rates; some goods and services are zero-rated or exempt, so treat this as an estimate.
+ 
++canadafox-toolbar-clearcache-button =
++    .tooltiptext = Clear cache
++
++canadafox-clearcache-panel-title = Clear cache?
++
++canadafox-clearcache-panel-desc = This clears the network and image cache for all sites. Pages may load slower the next time you visit them until the cache rebuilds. This can't be undone.
++
++canadafox-clearcache-cancel-button =
++    .label = Cancel
++
++canadafox-clearcache-confirm-button =
++    .label = Clear Cache
++
++canadafox-clearcache-done = Cache cleared.
++
+ # Variables:
+ #   $shortcut (String): keyboard shortcut to print the page
+ navbar-print =
+diff --git a/browser/themes/shared/customizableui/panelUI-shared.css b/browser/themes/shared/customizableui/panelUI-shared.css
+index 9f3d710bc2..b2e7a34ed9 100644
+--- a/browser/themes/shared/customizableui/panelUI-shared.css
++++ b/browser/themes/shared/customizableui/panelUI-shared.css
+@@ -2570,3 +2570,46 @@ radiogroup:focus-visible > .subviewradio[focused="true"] {
+   color: var(--text-color-deemphasized);
+   margin: 10px 0 0;
+ }
++
++#canadafox-clearcache-panel-body {
++  padding: 16px;
++  width: 240px;
++}
++
++#canadafox-clearcache-panel-title {
++  font-size: 13px;
++  font-weight: 600;
++  margin: 0 0 8px;
++}
++
++#canadafox-clearcache-panel-desc {
++  font-size: 12px;
++  color: var(--text-color-deemphasized);
++  margin: 0 0 14px;
++}
++
++#canadafox-clearcache-panel-buttons {
++  display: flex;
++  gap: 8px;
++}
++
++#canadafox-clearcache-cancel-button,
++#canadafox-clearcache-confirm-button {
++  flex: 1;
++}
++
++#canadafox-clearcache-confirm-button {
++  color: white;
++  background-color: #c0392b;
++}
++
++#canadafox-clearcache-confirm-button:hover {
++  background-color: #a5311f;
++}
++
++#canadafox-clearcache-status {
++  font-size: 12px;
++  font-weight: 600;
++  margin: 10px 0 0;
++  text-align: center;
++}
+diff --git a/browser/themes/shared/toolbarbutton-icons.css b/browser/themes/shared/toolbarbutton-icons.css
+index 925a5bf398..e84d03b9a9 100644
+--- a/browser/themes/shared/toolbarbutton-icons.css
++++ b/browser/themes/shared/toolbarbutton-icons.css
+@@ -192,6 +192,10 @@
+   list-style-image: url("chrome://branding/content/canada-tax.svg");
+ }
+ 
++#canadafox-clearcache-button-inner {
++  list-style-image: url("chrome://branding/content/canada-clearcache.svg");
++}
++
+ #reset-pbm-toolbar-button {
+   list-style-image: url("chrome://browser/skin/flame.svg");
+ }

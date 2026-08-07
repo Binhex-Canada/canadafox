@@ -1,0 +1,542 @@
+diff --git a/browser/branding/unofficial/content/canada-lookalike-warning.html b/browser/branding/unofficial/content/canada-lookalike-warning.html
+new file mode 100644
+index 0000000000..b9097bcd53
+--- /dev/null
++++ b/browser/branding/unofficial/content/canada-lookalike-warning.html
+@@ -0,0 +1,119 @@
++<!-- This Source Code Form is subject to the terms of the Mozilla Public
++   - License, v. 2.0. If a copy of the MPL was not distributed with this
++   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
++<!DOCTYPE html>
++<html lang="en">
++<head>
++<meta charset="utf-8">
++<title>Possible lookalike site</title>
++<style>
++  html, body {
++    margin: 0;
++    height: 100%;
++    background: #2b0a0a;
++    color: #fff;
++    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
++  }
++  body {
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    padding: 40px 24px;
++    box-sizing: border-box;
++  }
++  main {
++    max-width: 560px;
++  }
++  h1 {
++    font-size: 22px;
++    line-height: 1.35;
++    margin: 0 0 20px;
++  }
++  p {
++    font-size: 15px;
++    line-height: 1.6;
++    color: rgba(255, 255, 255, 0.85);
++  }
++  .address {
++    font-family: ui-monospace, Menlo, Consolas, monospace;
++    word-break: break-all;
++    background: rgba(255, 255, 255, 0.08);
++    padding: 10px 12px;
++    border-radius: 4px;
++  }
++  .hint {
++    color: rgba(255, 255, 255, 0.7);
++  }
++  .hint strong {
++    color: #fff;
++  }
++  .buttons {
++    margin-top: 28px;
++  }
++  button {
++    font-size: 15px;
++    font-weight: 600;
++    padding: 10px 20px;
++    border-radius: 4px;
++    border: none;
++    background: #fff;
++    color: #2b0a0a;
++    cursor: pointer;
++  }
++  button:hover {
++    background: rgba(255, 255, 255, 0.85);
++  }
++  .continue {
++    margin-top: 18px;
++    font-size: 13px;
++  }
++  .continue a {
++    color: rgba(255, 255, 255, 0.6);
++  }
++</style>
++</head>
++<body>
++<main>
++  <h1>⚠️ This site may not be what it claims to be</h1>
++  <p class="address" id="targetLine"></p>
++  <p class="hint">
++    CanadaFox flagged this address because it closely resembles
++    <strong id="realDomain"></strong> but isn't it. This is a common trick
++    used in phishing and scam sites -- often to impersonate government
++    services, banks, or tech support. Checked entirely on this device;
++    nothing was sent anywhere to produce this warning.
++  </p>
++  <div class="buttons">
++    <button id="goBack">Go back to safety</button>
++  </div>
++  <p class="continue">
++    <a id="continueLink" href="#">I understand the risk -- continue anyway</a>
++  </p>
++</main>
++<script>
++  const params = new URLSearchParams(location.search);
++  const target = params.get("target") || "";
++  const real = params.get("real") || "";
++
++  document.getElementById("targetLine").textContent = target;
++  document.getElementById("realDomain").textContent = real;
++
++  document.getElementById("goBack").addEventListener("click", () => {
++    if (history.length > 1) {
++      history.back();
++    } else {
++      location.href = "about:home";
++    }
++  });
++
++  const continueLink = document.getElementById("continueLink");
++  try {
++    const url = new URL(target);
++    url.hash = "canadafox-lookalike-override";
++    continueLink.href = url.href;
++  } catch (e) {
++    continueLink.remove();
++  }
++</script>
++</body>
++</html>
+diff --git a/browser/branding/unofficial/content/jar.mn b/browser/branding/unofficial/content/jar.mn
+index e334bab372..86c08014b0 100644
+--- a/browser/branding/unofficial/content/jar.mn
++++ b/browser/branding/unofficial/content/jar.mn
+@@ -24,4 +24,5 @@ browser.jar:
+   content/branding/canada-tax.svg
+   content/branding/canada-newtab.html
+   content/branding/canada-welcome.html
++  content/branding/canada-lookalike-warning.html
+   content/branding/dbip-country.bin
+diff --git a/browser/branding/unofficial/pref/firefox-branding.js b/browser/branding/unofficial/pref/firefox-branding.js
+index 10463aafeb..e50bb49510 100644
+--- a/browser/branding/unofficial/pref/firefox-branding.js
++++ b/browser/branding/unofficial/pref/firefox-branding.js
+@@ -27,6 +27,11 @@ pref("canadafox.dns.ciraEnabled", true);
+ // default upstream -- CanadaFox turns it on.
+ pref("canadafox.privacy.stripTrackingParams", true);
+ 
++// CanadaFox: "Warn about lookalike domains" toggle (Settings -> CanadaFox),
++// read live by CanadaFoxLookalikeProtection.sys.mjs to register/unregister
++// its content policy.
++pref("canadafox.lookalikeProtection.enabled", true);
++
+ // CanadaFox: about:home's startup cache assumes Activity Stream has been
+ // constructed, but pointing new tabs at about:canadafoxnewtab (see
+ // utilityOverlay.js) means nothing triggers that construction, so the cache
+diff --git a/browser/components/BrowserGlue.sys.mjs b/browser/components/BrowserGlue.sys.mjs
+index 9702f2920c..30415d91b4 100644
+--- a/browser/components/BrowserGlue.sys.mjs
++++ b/browser/components/BrowserGlue.sys.mjs
+@@ -23,6 +23,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
+   BrowserUtils: "resource://gre/modules/BrowserUtils.sys.mjs",
+   BrowserUsageTelemetry: "resource:///modules/BrowserUsageTelemetry.sys.mjs",
+   BrowserWindowTracker: "resource:///modules/BrowserWindowTracker.sys.mjs",
++  CanadaFoxLookalikeProtection:
++    "resource:///modules/CanadaFoxLookalikeProtection.sys.mjs",
+   ContentBlockingPrefs:
+     "moz-src:///browser/components/protections/ContentBlockingPrefs.sys.mjs",
+   ContextualIdentityService:
+@@ -405,6 +407,7 @@ BrowserGlue.prototype = {
+ 
+     this._initCiraDnsToggle();
+     this._initStripTrackingParamsToggle();
++    lazy.CanadaFoxLookalikeProtection.init();
+     this._initSharperImagesToggle();
+     this._initKeywordShortcuts();
+     this._ensureCanadianServicesBookmarks();
+diff --git a/browser/components/CanadaFoxLookalikeProtection.sys.mjs b/browser/components/CanadaFoxLookalikeProtection.sys.mjs
+new file mode 100644
+index 0000000000..19eabc48a0
+--- /dev/null
++++ b/browser/components/CanadaFoxLookalikeProtection.sys.mjs
+@@ -0,0 +1,252 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++// CanadaFox: warns before navigating to a domain that closely mimics one of
++// a small set of frequently-impersonated sites -- Canadian government and
++// banking services plus a handful of major global brands commonly used as
++// phishing lures (e.g. "cra-refund-canada.com", "microsoft-support-alert.com").
++// Entirely local: no network requests, no telemetry, just a bundled domain
++// list and a similarity check run against the eTLD+1 of every top-level
++// navigation, using the same JS content-policy mechanism enterprise policy's
++// WebsiteFilter uses (see enterprisepolicies/helpers/WebsiteFilter.sys.mjs).
++
++const PREF_ENABLED = "canadafox.lookalikeProtection.enabled";
++const WARNING_PAGE = "about:canadafoxlookalike";
++const OVERRIDE_FRAGMENT = "canadafox-lookalike-override";
++
++const CONTENT_POLICY_CID = Components.ID(
++  "{5f2b6e9a-3c1d-4b7a-9e2f-1a6d8c4b7e93}"
++);
++const CONTENT_POLICY_CONTRACT_ID =
++  "@canadafox.ca/lookalike-domain-content-policy;1";
++
++// eTLD+1 (registrable domain) for each protected site. Kept intentionally
++// small and specific -- this catches phishing of Canada's most commonly
++// impersonated government/financial services plus a handful of global
++// brands, not a general-purpose blocklist.
++export const CANADAFOX_PROTECTED_DOMAINS = [
++  "canada.ca",
++  "cra-arc.gc.ca",
++  "servicecanada.gc.ca",
++  "rbc.com",
++  "royalbank.com",
++  "td.com",
++  "scotiabank.com",
++  "bmo.com",
++  "cibc.com",
++  "interac.ca",
++  "desjardins.com",
++  "canadapost.ca",
++  "microsoft.com",
++  "apple.com",
++  "google.com",
++  "paypal.com",
++  "amazon.com",
++  "netflix.com",
++];
++
++function levenshtein(a, b) {
++  const n = b.length;
++  const dp = new Array(n + 1);
++  for (let j = 0; j <= n; j++) {
++    dp[j] = j;
++  }
++  for (let i = 1; i <= a.length; i++) {
++    let prev = dp[0];
++    dp[0] = i;
++    for (let j = 1; j <= n; j++) {
++      const tmp = dp[j];
++      dp[j] = Math.min(
++        dp[j] + 1,
++        dp[j - 1] + 1,
++        prev + (a[i - 1] === b[j - 1] ? 0 : 1)
++      );
++      prev = tmp;
++    }
++  }
++  return dp[n];
++}
++
++// Normalizes common character substitutions used in lookalike domains
++// ("rn" -> "m", "0"/"1" -> "o"/"l", ...) before comparing, so e.g.
++// "arnaz0n" and "amazon" compare as the same label.
++function normalizeConfusables(label) {
++  return label
++    .replace(/rn/g, "m")
++    .replace(/vv/g, "w")
++    .replace(/0/g, "o")
++    .replace(/1/g, "l")
++    .replace(/3/g, "e")
++    .replace(/5/g, "s")
++    .replace(/\$/g, "s");
++}
++
++function firstLabel(domain) {
++  return domain.split(".")[0];
++}
++
++// Returns the protected domain a given host appears to be impersonating, or
++// null if the host is safe (either the real domain, one of its subdomains,
++// or unrelated to any protected domain).
++export function findLookalikeMatch(host) {
++  let baseDomain;
++  try {
++    baseDomain = Services.eTLD.getBaseDomainFromHost(host).toLowerCase();
++  } catch (e) {
++    return null;
++  }
++  if (!baseDomain || CANADAFOX_PROTECTED_DOMAINS.includes(baseDomain)) {
++    return null;
++  }
++
++  const candidateLabel = normalizeConfusables(firstLabel(baseDomain));
++
++  for (const protectedDomain of CANADAFOX_PROTECTED_DOMAINS) {
++    const protectedLabel = normalizeConfusables(firstLabel(protectedDomain));
++
++    if (candidateLabel === protectedLabel) {
++      // Same brand name, different eTLD+1 -- wrong suffix/TLD, e.g.
++      // "cra-arc.gc.ca.com" or "rbc.net" instead of "rbc.com".
++      return protectedDomain;
++    }
++    if (
++      candidateLabel.length >= 4 &&
++      levenshtein(candidateLabel, protectedLabel) <= 1
++    ) {
++      return protectedDomain;
++    }
++    // Brand name with extra words tacked on, e.g. "microsoft-support-alert"
++    // or "rbc-secure-login". Threshold of 3 excludes only very short labels
++    // ("td") from this specific check, since a 2-letter prefix/suffix match
++    // is too common to be meaningful; "td" is still caught by the exact- and
++    // edit-distance checks above.
++    if (
++      protectedLabel.length >= 3 &&
++      (candidateLabel.startsWith(protectedLabel + "-") ||
++        candidateLabel.endsWith("-" + protectedLabel))
++    ) {
++      return protectedDomain;
++    }
++  }
++  return null;
++}
++
++export const CanadaFoxLookalikeProtection = {
++  _registered: false,
++
++  init() {
++    this._applyEnabledSetting();
++    Services.prefs.addObserver(PREF_ENABLED, () =>
++      this._applyEnabledSetting()
++    );
++  },
++
++  _applyEnabledSetting() {
++    if (Services.prefs.getBoolPref(PREF_ENABLED, true)) {
++      this._register();
++    } else {
++      this._unregister();
++    }
++  },
++
++  _register() {
++    if (this._registered) {
++      return;
++    }
++    const registrar = Components.manager.QueryInterface(
++      Ci.nsIComponentRegistrar
++    );
++    if (!registrar.isContractIDRegistered(CONTENT_POLICY_CONTRACT_ID)) {
++      registrar.registerFactory(
++        CONTENT_POLICY_CID,
++        "CanadaFox Lookalike Domain Content Policy",
++        CONTENT_POLICY_CONTRACT_ID,
++        this
++      );
++      Services.catMan.addCategoryEntry(
++        "content-policy",
++        CONTENT_POLICY_CONTRACT_ID,
++        CONTENT_POLICY_CONTRACT_ID,
++        false,
++        true
++      );
++    }
++    this._registered = true;
++  },
++
++  _unregister() {
++    if (!this._registered) {
++      return;
++    }
++    Services.catMan.deleteCategoryEntry(
++      "content-policy",
++      CONTENT_POLICY_CONTRACT_ID,
++      false
++    );
++    const registrar = Components.manager.QueryInterface(
++      Ci.nsIComponentRegistrar
++    );
++    registrar.unregisterFactory(CONTENT_POLICY_CID, this);
++    this._registered = false;
++  },
++
++  shouldLoad(contentLocation, loadInfo) {
++    if (
++      loadInfo.externalContentPolicyType !== Ci.nsIContentPolicy.TYPE_DOCUMENT
++    ) {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++    if (contentLocation.scheme !== "http" && contentLocation.scheme !== "https") {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++    // Set by the "continue anyway" link on the warning page itself.
++    if (contentLocation.ref === OVERRIDE_FRAGMENT) {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++
++    let host;
++    try {
++      host = contentLocation.host;
++    } catch (e) {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++
++    const match = findLookalikeMatch(host);
++    if (!match) {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++
++    const browsingContext = loadInfo.browsingContext?.top;
++    const browser = browsingContext?.embedderElement;
++    if (!browser) {
++      return Ci.nsIContentPolicy.ACCEPT;
++    }
++
++    const warningURL = `${WARNING_PAGE}?target=${encodeURIComponent(
++      contentLocation.spec
++    )}&real=${encodeURIComponent(match)}`;
++    Services.tm.dispatchToMainThread(() => {
++      try {
++        browser.loadURI(Services.io.newURI(warningURL), {
++          triggeringPrincipal:
++            Services.scriptSecurityManager.getSystemPrincipal(),
++        });
++      } catch (e) {}
++    });
++
++    return Ci.nsIContentPolicy.REJECT_REQUEST;
++  },
++
++  shouldProcess() {
++    return Ci.nsIContentPolicy.ACCEPT;
++  },
++
++  classDescription: "CanadaFox Lookalike Domain Content Policy",
++  contractID: CONTENT_POLICY_CONTRACT_ID,
++  classID: CONTENT_POLICY_CID,
++  QueryInterface: ChromeUtils.generateQI(["nsIContentPolicy"]),
++  createInstance(iid) {
++    return this.QueryInterface(iid);
++  },
++};
+diff --git a/browser/components/about/AboutRedirector.cpp b/browser/components/about/AboutRedirector.cpp
+index bf133cd5d4..ca31fbbb25 100644
+--- a/browser/components/about/AboutRedirector.cpp
++++ b/browser/components/about/AboutRedirector.cpp
+@@ -70,6 +70,16 @@ static const RedirEntry kRedirMap[] = {
+      nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+          nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
+          nsIAboutModule::HIDE_FROM_ABOUTABOUT},
++    // CanadaFox: the lookalike-domain warning page, loaded by
++    // CanadaFoxLookalikeProtection.sys.mjs when a navigation is flagged as a
++    // likely impersonation of a protected domain. Unprivileged like the
++    // other CanadaFox about: pages -- it just renders the target/real
++    // domain from its query string, no chrome access needed.
++    {"canadafoxlookalike",
++     "chrome://branding/content/canada-lookalike-warning.html",
++     nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
++         nsIAboutModule::URI_CAN_LOAD_IN_CHILD | nsIAboutModule::ALLOW_SCRIPT |
++         nsIAboutModule::HIDE_FROM_ABOUTABOUT},
+     // CanadaFox: the welcome/quote page. Also a real about: page rather
+     // than a data: URI -- top-level data: URI navigation is blocked
+     // outright by security.data_uri.block_toplevel_data_uri_navigations,
+diff --git a/browser/components/about/components.conf b/browser/components/about/components.conf
+index 6d6744eff5..d1cd389f9d 100644
+--- a/browser/components/about/components.conf
++++ b/browser/components/about/components.conf
+@@ -6,6 +6,7 @@ pages = [
+     'aichatcontent',
+     'asrouter',
+     'blocked',
++    'canadafoxlookalike',
+     'canadafoxnewtab',
+     'canadafoxwelcome',
+     'certerror',
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+index d1d769ab09..65d10caeb9 100644
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -112,6 +112,7 @@ EXTRA_JS_MODULES += [
+     "AccountsGlue.sys.mjs",
+     "BrowserContentHandler.sys.mjs",
+     "BrowserGlue.sys.mjs",
++    "CanadaFoxLookalikeProtection.sys.mjs",
+     "distribution.sys.mjs",
+ ]
+ 
+diff --git a/browser/components/preferences/config/canadafox.mjs b/browser/components/preferences/config/canadafox.mjs
+index 003bcd93ed..e49bfb2a10 100644
+--- a/browser/components/preferences/config/canadafox.mjs
++++ b/browser/components/preferences/config/canadafox.mjs
+@@ -21,6 +21,14 @@ Preferences.addSetting({
+   id: "canadafoxStripTrackingParams",
+   pref: "canadafox.privacy.stripTrackingParams",
+ });
++Preferences.add({
++  id: "canadafox.lookalikeProtection.enabled",
++  type: "bool",
++});
++Preferences.addSetting({
++  id: "canadafoxLookalikeProtection",
++  pref: "canadafox.lookalikeProtection.enabled",
++});
+ Preferences.add({ id: "canadafox.sharperImages.enabled", type: "bool" });
+ Preferences.addSetting({
+   id: "canadafoxSharperImages",
+@@ -80,6 +88,16 @@ SettingGroupManager.registerGroups({
+       },
+     ],
+   },
++  canadafoxSecurity: {
++    l10nId: "canadafox-settings-security-group",
++    headingLevel: 2,
++    items: [
++      {
++        id: "canadafoxLookalikeProtection",
++        l10nId: "canadafox-lookalike-protection",
++      },
++    ],
++  },
+   canadafoxAddons: {
+     l10nId: "canadafox-settings-addons-group",
+     headingLevel: 2,
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index 3c966b6cd8..31a556d9d2 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -458,6 +458,7 @@ const CONFIG_PANES = Object.freeze({
+       "canadafoxTabs",
+       "canadafoxDisplay",
+       "canadafoxPrivacy",
++      "canadafoxSecurity",
+       "canadafoxAddons",
+     ],
+     iconSrc: "chrome://branding/content/canada-flag.svg",
+diff --git a/browser/locales/en-US/browser/preferences/preferences.ftl b/browser/locales/en-US/browser/preferences/preferences.ftl
+index 7d637c59c8..607eb21870 100644
+--- a/browser/locales/en-US/browser/preferences/preferences.ftl
++++ b/browser/locales/en-US/browser/preferences/preferences.ftl
+@@ -2718,6 +2718,14 @@ canadafox-strip-tracking-params =
+     .accesskey = T
+     .description = Uses Firefox's own link-cleaning engine, but applies it to every page you navigate to, not just links you copy or share. Off by default in stock Firefox; CanadaFox turns it on.
+ 
++canadafox-settings-security-group =
++    .label = Security
++
++canadafox-lookalike-protection =
++    .label = Warn about lookalike domains impersonating known sites
++    .accesskey = W
++    .description = CanadaFox-specific setting, not present in stock Firefox. Checks the address you're navigating to against a small bundled list of frequently-impersonated Canadian government, banking, and major tech sites, entirely on this device -- no network request. Catches addresses like "cra-refund-canada.com" or "microsoft-support-alert.com" before the page loads, with an option to continue anyway.
++
+ canadafox-sharper-images =
+     .label = Request sharper images and text (uses more data and battery)
+     .accesskey = S
