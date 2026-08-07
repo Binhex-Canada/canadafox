@@ -6,6 +6,12 @@ ac_add_options --enable-application=browser
 ac_add_options --disable-crashreporter
 ac_add_options --disable-tests
 
+# The unofficial branding directory only sets MOZ_APP_DISPLAYNAME
+# ("CanadaFox", used in-app and for the .app bundle name) -- the internal
+# app name used to build package filenames (mach package's
+# firefox-VERSION.en-US.mac.dmg) stays "firefox" unless overridden here.
+mk_add_options 'export MOZ_PKG_APPNAME=canadafox'
+
 # Speeds up incremental/repeat local builds by caching compiled objects
 # (C/C++ and Rust) across `mach build` runs, e.g. after `apply-patches.sh`
 # resets and re-applies patches on top of an otherwise-unchanged tree.
